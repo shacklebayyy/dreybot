@@ -399,15 +399,16 @@ async def admin_topups_list(event, state: FSMContext = None):
         results = []
         for t in topups:
             cust = t.customer.first_name or t.customer.username or f"ID:{t.customer.telegram_user_id}"
+            b_amount = t.bonus_amount or Decimal('0.00')
             results.append({
                 'id': t.id,
                 'customer': cust,
                 'cust_id': t.customer.telegram_user_id,
                 'amount': t.amount,
-                'bonus_earned': t.bonus_earned,
-                'total_credit': t.amount + t.bonus_earned,
-                'method': t.payment_method,
-                'proof': t.payment_proof,
+                'bonus_amount': b_amount,
+                'total_credit': t.amount + b_amount,
+                'method': t.currency,
+                'proof': t.tx_hash or t.notes or 'Submitted',
                 'created_at': t.created_at.strftime('%Y-%m-%d %H:%M')
             })
         return results
@@ -435,7 +436,7 @@ async def admin_topups_list(event, state: FSMContext = None):
         card = (
             f"💵 *Top-Up Request #{t['id']}*\n"
             f"👤 Customer: `{t['customer']}`\n"
-            f"💰 Amount: *${t['amount']:.2f} USD* (Bonus: *${t['bonus_earned']:.2f}*)\n"
+            f"💰 Amount: *${t['amount']:.2f} USD* (Bonus: *${t['bonus_amount']:.2f}*)\n"
             f"💳 Total Credit: *${t['total_credit']:.2f} USD*\n"
             f"🌐 Method: `{t['method']}`\n"
             f"📄 Proof: _{t['proof']}_\n"
@@ -471,7 +472,7 @@ async def cb_adm_topup_app(call: CallbackQuery):
 
             cust = t.customer
             cust.balance += t.amount
-            cust.bonus_balance += t.bonus_earned
+            cust.bonus_balance += t.bonus_amount
             cust.save()
 
             return t, None
@@ -483,11 +484,11 @@ async def cb_adm_topup_app(call: CallbackQuery):
         await call.answer(err or "Failed", show_alert=True)
         return
 
-    total_credit = topup.amount + topup.bonus_earned
+    total_credit = topup.amount + topup.bonus_amount
     send_telegram_direct_message(
         topup.customer.telegram_user_id,
         f"🎉 *DEPOSIT APPROVED & CREDITED!*\n\n"
-        f"Your top-up deposit of *${topup.amount:.2f} USD* + *${topup.bonus_earned:.2f} Bonus* (${total_credit:.2f} Total) has been credited to your balance!\n\n"
+        f"Your top-up deposit of *${topup.amount:.2f} USD* + *${topup.bonus_amount:.2f} Bonus* (${total_credit:.2f} Total) has been credited to your balance!\n\n"
         f"👛 *New Balance:* ${topup.customer.balance:.2f} USD | Bonus: ${topup.customer.bonus_balance:.2f}"
     )
 
