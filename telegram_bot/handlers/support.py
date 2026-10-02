@@ -175,9 +175,9 @@ async def process_custom_request_details(message: Message, state: FSMContext):
         )
         order = Order.objects.create(
             customer=profile,
-            subtotal=12.00,
+            subtotal=0.00,
             discount=0.00,
-            total=12.00,
+            total=0.00,
             currency='USD',
             payment_status=PaymentStatus.PENDING,
             order_status=OrderStatus.PENDING,
@@ -199,19 +199,22 @@ async def process_custom_request_details(message: Message, state: FSMContext):
     await state.clear()
     await sync_to_async(notify_custom_order_created)(order, req_notes)
 
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🏠 Main Menu", callback_data="main_menu")]
+    ])
+
     text = (
-        f"✅ *CUSTOM REQUEST SUBMITTED!*\n\n"
-        f"📋 *Order Number:* `{order.order_number}`\n"
-        f"📝 *Requirements:* _{req_notes}_\n"
-        f"💰 *Fee:* `${order.total}` {order.currency}\n"
-        f"⏳ *Status:* PENDING PAYMENT\n\n"
-        f"Please select your preferred payment method below to proceed. An admin will prepare your custom document file and send it directly to your Telegram chat!"
+        f"✅ *CUSTOM DOCUMENT REQUEST SUBMITTED!*\n\n"
+        f"📋 *Reference Number:* `{order.order_number}`\n"
+        f"📝 *Specifications:* _{req_notes}_\n"
+        f"⏳ *Status:* UNDER ADMIN REVIEW\n\n"
+        f"Your custom template request has been logged. Our design team will review your specifications and send your completed file directly to your chat."
     )
 
     await message.answer(
         text,
         parse_mode="Markdown",
-        reply_markup=get_payment_methods_keyboard(order.order_number)
+        reply_markup=kb
     )
 
 # CATCH-ALL HANDLER FOR UNRECOGNIZED TEXT MESSAGES

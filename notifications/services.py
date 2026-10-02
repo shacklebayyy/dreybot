@@ -31,11 +31,13 @@ def send_telegram_direct_message(telegram_id: int, text: str, reply_markup: dict
         print(f"Failed to send Telegram message to {telegram_id}: {e}")
         return False
 
-def notify_admins(text: str, reply_markup: dict = None):
+def notify_admins(text: str, reply_markup: dict = None, exclude_telegram_id: int = None):
     try:
         admins = UserProfile.objects.exclude(role='CUSTOMER')
+        if not text.startswith("🔐"):
+            text = f"🔐 *[ADMIN DESK ALERT]*\n\n{text}"
         for admin in admins:
-            if admin.telegram_user_id:
+            if admin.telegram_user_id and admin.telegram_user_id != exclude_telegram_id:
                 send_telegram_direct_message(admin.telegram_user_id, text, reply_markup=reply_markup)
     except Exception as e:
         print(f"Failed to notify admins: {e}")

@@ -41,9 +41,9 @@ async def handle_custom_request_cmd(message: Message):
         )
         order = Order.objects.create(
             customer=profile,
-            subtotal=12.00,
+            subtotal=0.00,
             discount=0.00,
-            total=12.00,
+            total=0.00,
             currency='USD',
             payment_status=PaymentStatus.PENDING,
             order_status=OrderStatus.PENDING,
@@ -53,19 +53,43 @@ async def handle_custom_request_cmd(message: Message):
 
     profile, order = await sync_to_async(create_custom_order)()
 
+    from notifications.services import notify_admins
+    def alert_admins():
+        cust = profile.first_name or profile.username or f"ID:{profile.telegram_user_id}"
+        text = (
+            f"🚨 *NEW CUSTOM ORDER REQUEST #{order.order_number}*\n\n"
+            f"👤 *Customer:* `{cust}` (@{profile.username or 'N/A'})\n"
+            f"📝 *Requirements:* _{req_notes}_\n"
+            f"⏳ *Status:* UNDER ADMIN REVIEW"
+        )
+        kb = {
+            'inline_keyboard': [
+                [{'text': '📤 Upload & Deliver File', 'callback_data': f'adm_order_deliver:{order.id}'}],
+                [{'text': '✅ Mark Paid', 'callback_data': f'adm_order_paid:{order.id}'}],
+                [{'text': '❌ Cancel Request', 'callback_data': f'adm_order_cancel:{order.id}'}]
+            ]
+        }
+        notify_admins(text, reply_markup=kb)
+
+    await sync_to_async(alert_admins)()
+
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🏠 Main Menu", callback_data="main_menu")]
+    ])
+
     text = (
-        f"✅ *CUSTOM REQUEST SUBMITTED!*\n\n"
-        f"📋 *Order Number:* `{order.order_number}`\n"
-        f"📝 *Requirements:* _{req_notes}_\n"
-        f"💰 *Fee:* `${order.total}` {order.currency}\n"
-        f"⏳ *Status:* PENDING PAYMENT\n\n"
-        f"Please select your preferred payment method below to proceed. An admin will prepare your custom document file and send it directly to your Telegram chat!"
+        f"✅ *CUSTOM DOCUMENT REQUEST SUBMITTED!*\n\n"
+        f"📋 *Reference Number:* `{order.order_number}`\n"
+        f"📝 *Specifications:* _{req_notes}_\n"
+        f"⏳ *Status:* UNDER ADMIN REVIEW\n\n"
+        f"Thank you! Your custom specifications have been logged. An admin will prepare your document and reply directly to your chat."
     )
 
     await message.answer(
         text,
         parse_mode="Markdown",
-        reply_markup=get_payment_methods_keyboard(order.order_number)
+        reply_markup=kb
     )
 
 from notifications.services import notify_admins
