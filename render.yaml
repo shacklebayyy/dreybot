@@ -1,0 +1,55 @@
+services:
+  # 1. Django Web Service (Admin Dashboard & Web Frontend)
+  - type: web
+    name: dreydocs-web
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn drey_docs.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dreydocs-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLIC_KEY
+        sync: false
+
+  # 2. Telegram Bot Background Worker
+  - type: worker
+    name: dreydocs-bot
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python telegram_bot/bot.py"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dreydocs-db
+          property: connectionString
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: dreydocs-web
+          envVarKey: SECRET_KEY
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+# 3. Managed PostgreSQL Database
+databases:
+  - name: dreydocs-db
+    databaseName: dreydocs
+    user: dreydocs_user
+    region: oregon
+    plan: free

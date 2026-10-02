@@ -1,0 +1,11 @@
+*.pyc
+__pycache__/
+*.sqlite3
+.env
+venv/
+.venv/
+media/downloads/
+media/previews/
+staticfiles/
+celerybeat-schedule
+.pytest_cache/

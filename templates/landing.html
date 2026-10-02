@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-cyan-500/20">
+                D
+            </div>
+            <div>
+                <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">DREYDOCS</span>
+                <span class="hidden sm:inline block text-xs text-slate-400 font-medium ml-2">Learning Documents & Verification Services</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="/admin-panel/" class="text-sm font-medium text-slate-300 hover:text-cyan-400 transition">Admin Dashboard</a>
+            <a href="https://t.me/{{ telegram_bot_username }}" target="_blank" class="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-cyan-500/25 transition transform hover:-translate-y-0.5 flex items-center space-x-2">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-2.03 9.56c-.15.68-.55.84-1.12.52l-3.1-2.28-1.5 1.44c-.17.17-.31.31-.64.31l.22-3.17 5.77-5.21c.25-.22-.05-.34-.39-.12l-7.13 4.49-3.07-.96c-.67-.21-.68-.67.14-.99l12.01-4.63c.56-.21 1.05.13.84.99z"/></svg>
+                <span>Open Telegram Bot</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="py-20 relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(6,182,212,0.15),transparent_50%)]"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-cyan-950/60 border border-cyan-800/40 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-6">
+            <span>Official Educational Marketplace</span>
+        </div>
+        <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight max-w-4xl mx-auto leading-tight">
+            Educational Document Templates & <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Authorized Verification</span>
+        </h1>
+        <p class="mt-6 text-lg text-slate-300 max-w-2xl mx-auto font-normal">
+            Browse educational design templates and access authorized verification services directly through our high-speed Telegram bot platform.
+        </p>
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a href="https://t.me/{{ telegram_bot_username }}" target="_blank" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg shadow-xl shadow-cyan-500/25 transition transform hover:-translate-y-1 flex items-center justify-center space-x-3">
+                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-2.03 9.56c-.15.68-.55.84-1.12.52l-3.1-2.28-1.5 1.44c-.17.17-.31.31-.64.31l.22-3.17 5.77-5.21c.25-.22-.05-.34-.39-.12l-7.13 4.49-3.07-.96c-.67-.21-.68-.67.14-.99l12.01-4.63c.56-.21 1.05.13.84.99z"/></svg>
+                <span>Launch DreyDocs Bot</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Compliance Warning Banner -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="bg-amber-950/40 border border-amber-500/30 rounded-2xl p-6 text-center text-amber-200 text-sm leading-relaxed">
+        <div class="font-bold text-base mb-1 text-amber-400">⚠️ COMPLIANCE & SAFETY NOTICE</div>
+        All document templates available on DreyDocs are graphic design templates created strictly for educational, testing, and layout purposes. They contain explicit watermark disclaimers (<span class="font-bold">SAMPLE / NOT A GOVERNMENT DOCUMENT</span>) and are not valid for identification or official use. Verification services utilize authorized third-party provider APIs with explicit user consent.
+    </div>
+</section>
+
+<!-- Features Grid -->
+<section class="py-16 bg-slate-900/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold text-white text-center mb-12">Platform Capabilities</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition">
+                <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-xl mb-4">📄</div>
+                <h3 class="text-xl font-bold text-white mb-2">Educational Templates</h3>
+                <p class="text-slate-400 text-sm">Access high quality PSD/AI templates for ID cards, driver licenses (all 50 US states), passports, and business certificates.</p>
+            </div>
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition">
+                <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-xl mb-4">🔎</div>
+                <h3 class="text-xl font-bold text-white mb-2">Authorized Verification</h3>
+                <p class="text-slate-400 text-sm">Perform EIN, TIN, SSN, and identity checks via licensed providers with customer consent records and data minimization.</p>
+            </div>
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition">
+                <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-bold text-xl mb-4">🔒</div>
+                <h3 class="text-xl font-bold text-white mb-2">Secure Delivery</h3>
+                <p class="text-slate-400 text-sm">Instant automated checkout with Stripe, Paystack, M-Pesa, and Crypto USDT support. Secure expiring download tokens protect your purchases.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="mt-auto border-t border-slate-800 py-8 text-center text-slate-500 text-sm">
+    <p>© 2026 DreyDocs. All rights reserved. Educational Templates & Verification Platform.</p>
+</footer>
+{% endblock %}

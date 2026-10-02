@@ -1,0 +1,56 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}State / Region Management{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-fit">
+        <h3 class="text-base font-bold text-white mb-4">Add State / Region</h3>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Country</label>
+                <select name="country" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+                    {% for c in countries %}
+                    <option value="{{ c.id }}">{{ c.flag_emoji }} {{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">State Name (e.g. California)</label>
+                <input type="text" name="name" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Abbreviation Code (e.g. CA)</label>
+                <input type="text" name="code" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm transition">
+                Save State
+            </button>
+        </form>
+    </div>
+
+    <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl max-h-[600px] overflow-y-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase sticky top-0">
+                <tr>
+                    <th class="p-4">State Name</th>
+                    <th class="p-4">Code</th>
+                    <th class="p-4">Country</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+                {% for st in states %}
+                <tr>
+                    <td class="p-4 font-semibold text-white">{{ st.name }}</td>
+                    <td class="p-4 font-mono text-cyan-400">{{ st.code }}</td>
+                    <td class="p-4 text-slate-300">{{ st.country.flag_emoji }} {{ st.country.name }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="p-4 text-center text-slate-500">No states configured.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

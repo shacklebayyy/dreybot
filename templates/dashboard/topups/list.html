@@ -1,0 +1,119 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Top-Up Deposit Requests & Crediting Area{% endblock %}
+
+{% block content %}
+<div class="space-y-8 pb-12">
+    <!-- Header & Metric Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-amber-950/30 to-slate-900 border border-slate-800 shadow-xl">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Pending Approval</span>
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            </div>
+            <div class="text-3xl font-extrabold text-white font-mono">{{ pending_count }}</div>
+            <div class="text-xs text-slate-400 mt-1">Awaiting payment verification</div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-emerald-950/30 to-slate-900 border border-slate-800 shadow-xl">
+            <div class="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">Total Approved & Credited</div>
+            <div class="text-3xl font-extrabold text-emerald-400 font-mono">${{ approved_total }}</div>
+            <div class="text-xs text-slate-400 mt-1">Total deposited by customers</div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex items-center justify-between">
+            <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Deposit Rules</div>
+                <div class="text-sm font-bold text-white">Minimum Top Up: $5.00</div>
+                <div class="text-xs text-slate-400">Bonus: +$5.00 for deposits ≥$50.00</div>
+            </div>
+            <a href="{% url 'dashboard:payment_settings' %}" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs border border-slate-700 transition">
+                Configure Rules
+            </a>
+        </div>
+    </div>
+
+    <!-- Top Up Requests Table -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl space-y-4">
+        <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span>💳</span> Deposit Requests Queue
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Review customer deposit submissions. Approving a request instantly adds funds + bonus rewards to their balance and dispatches a Telegram notification.</p>
+            </div>
+        </div>
+
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="p-4">Ref #</th>
+                    <th class="p-4">Customer</th>
+                    <th class="p-4">Currency</th>
+                    <th class="p-4">Deposit Amount</th>
+                    <th class="p-4">Bonus Reward</th>
+                    <th class="p-4">TxHash / Proof</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Submitted</th>
+                    <th class="p-4 text-center">Admin Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+                {% for req in topup_requests %}
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-mono font-bold text-cyan-400">{{ req.reference }}</td>
+                    <td class="p-4 text-white">
+                        <div class="font-semibold">{{ req.customer.full_name }}</div>
+                        <div class="text-[11px] text-slate-400 font-mono">ID: {{ req.customer.telegram_user_id }}</div>
+                    </td>
+                    <td class="p-4 font-bold text-slate-300">{{ req.currency }}</td>
+                    <td class="p-4 font-bold text-emerald-400 font-mono">${{ req.amount }}</td>
+                    <td class="p-4 font-bold text-amber-400 font-mono">
+                        {% if req.bonus_amount > 0 %}+${{ req.bonus_amount }}{% else %}$0.00{% endif %}
+                    </td>
+                    <td class="p-4 text-xs font-mono text-slate-300">
+                        <span class="bg-slate-950 px-2 py-1 rounded border border-slate-800 inline-block max-w-[180px] truncate" title="{{ req.tx_hash }}">
+                            {{ req.tx_hash|default:"No TxHash" }}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold {% if req.status == 'PENDING' %}bg-amber-950 text-amber-400 border border-amber-800{% elif req.status == 'APPROVED' %}bg-emerald-950 text-emerald-400 border border-emerald-800{% else %}bg-red-950 text-red-400 border border-red-800{% endif %}">
+                            {{ req.status }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-slate-400 text-xs">{{ req.created_at|date:"Y-m-d H:i" }}</td>
+                    <td class="p-4 text-center">
+                        {% if req.status == 'PENDING' %}
+                        <div class="flex items-center justify-center space-x-2">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="topup_id" value="{{ req.id }}">
+                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow">
+                                    ✅ Approve & Credit
+                                </button>
+                            </form>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="topup_id" value="{{ req.id }}">
+                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition shadow">
+                                    ❌ Reject
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="text-xs text-slate-500 italic">
+                            {% if req.status == 'APPROVED' %}Approved at {{ req.approved_at|date:"H:i" }}{% else %}Rejected{% endif %}
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="p-8 text-center text-slate-500">No top-up deposit requests submitted yet. Customers can request balance top-up via Telegram!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

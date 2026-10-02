@@ -1,0 +1,58 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}System & Payment Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl space-y-8">
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        <h3 class="text-base font-bold text-white border-b border-slate-800 pb-3">⚙️ General Platform Settings</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Platform Name</label>
+                <input type="text" name="site_name" value="{{ settings.site_name }}" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Platform Base Currency</label>
+                <input type="text" name="currency" value="{{ settings.currency }}" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 text-sm">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Telegram Bot Token</label>
+            <input type="password" name="telegram_bot_token" value="{{ settings.telegram_bot_token }}" placeholder="123456789:ABC..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 font-mono text-sm">
+        </div>
+
+        <h3 class="text-base font-bold text-white border-b border-slate-800 pb-3 pt-4">⚡ Crypto Payout Addresses (Admin Deposit Wallets)</h3>
+        <p class="text-xs text-slate-400">Set the wallet addresses displayed to customers when they select Crypto payment or Top Up their balance on Telegram:</p>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1">₿ BTC Address</label>
+                <input type="text" name="btc_address" value="{{ settings.btc_address }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">Ł LTC Address</label>
+                <input type="text" name="ltc_address" value="{{ settings.ltc_address }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-red-400 mb-1">💎 TRX Address</label>
+                <input type="text" name="trx_address" value="{{ settings.trx_address }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-blue-400 mb-1">Ξ ETH Address</label>
+                <input type="text" name="eth_address" value="{{ settings.eth_address }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">💵 USDT Address (TRC20 / ERC20)</label>
+                <input type="text" name="usdt_address" value="{{ settings.usdt_address }}" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-cyan-500">
+            </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm shadow-lg shadow-cyan-600/20 transition">
+            Save System & Payment Settings
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Admin Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Metric Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Customers</div>
+        <div class="text-3xl font-extrabold text-white">{{ total_customers }}</div>
+    </div>
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Orders</div>
+        <div class="text-3xl font-extrabold text-white">{{ total_orders }} <span class="text-sm font-normal text-slate-400">({{ paid_orders }} Paid)</span></div>
+    </div>
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Revenue</div>
+        <div class="text-3xl font-extrabold text-emerald-400">${{ total_revenue }}</div>
+    </div>
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Verifications</div>
+        <div class="text-3xl font-extrabold text-cyan-400">{{ total_verifications }}</div>
+    </div>
+</div>
+
+<!-- Analytics Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+        <h3 class="text-base font-bold text-white mb-4">Revenue & Sales Trend</h3>
+        <canvas id="salesChart" height="200"></canvas>
+    </div>
+    <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+        <h3 class="text-base font-bold text-white mb-4">Verification Activity</h3>
+        <canvas id="verificationChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Recent Orders Table -->
+<div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-white">Recent Customer Orders</h3>
+        <a href="{% url 'dashboard:order_list' %}" class="text-xs text-cyan-400 hover:underline">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="p-3">Order Number</th>
+                    <th class="p-3">Customer</th>
+                    <th class="p-3">Amount</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+                {% for order in recent_orders %}
+                <tr>
+                    <td class="p-3 font-mono text-cyan-400"><a href="{% url 'dashboard:order_detail' order.id %}">{{ order.order_number }}</a></td>
+                    <td class="p-3 text-slate-200">{{ order.customer.full_name }}</td>
+                    <td class="p-3 font-semibold">${{ order.total }}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold {% if order.payment_status == 'PAID' %}bg-emerald-950 text-emerald-400 border border-emerald-800{% else %}bg-amber-950 text-amber-400 border border-amber-800{% endif %}">
+                            {{ order.payment_status }}
+                        </span>
+                    </td>
+                    <td class="p-3 text-slate-400">{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="p-4 text-center text-slate-500">No orders recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx1 = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Revenue ($)',
+                    data: [120, 240, 180, 360, 480, 520, {{ total_revenue }}],
+                    borderColor: '#06b6d4',
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { plugins: { legend: { display: false } } }
+        });
+
+        const ctx2 = document.getElementById('verificationChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['EIN Check', 'SSN Check', 'TIN Check', 'Identity Check'],
+                datasets: [{
+                    label: 'Requests',
+                    data: [12, 19, 7, 15],
+                    backgroundColor: '#3b82f6'
+                }]
+            },
+            options: { plugins: { legend: { display: false } } }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Ticket #{{ ticket.ticket_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6 pb-12">
+    <!-- Header Banner -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex items-center justify-between">
+        <div>
+            <div class="flex items-center space-x-3 mb-1">
+                <span class="text-xs font-mono text-cyan-400 font-extrabold">{{ ticket.ticket_number }}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">{{ ticket.status }}</span>
+            </div>
+            <h2 class="text-xl font-bold text-white">{{ ticket.subject }}</h2>
+            <div class="text-xs text-slate-400 mt-1">Customer: <strong class="text-white">{{ ticket.customer.full_name }}</strong> (Telegram ID: <span class="font-mono text-slate-300">{{ ticket.customer.telegram_user_id }}</span>)</div>
+        </div>
+        <form method="POST" class="flex items-center space-x-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_status">
+            <select name="status" onchange="this.form.submit()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs font-semibold focus:outline-none">
+                <option value="OPEN" {% if ticket.status == 'OPEN' %}selected{% endif %}>STATUS: OPEN</option>
+                <option value="IN_PROGRESS" {% if ticket.status == 'IN_PROGRESS' %}selected{% endif %}>STATUS: IN_PROGRESS</option>
+                <option value="WAITING_CUSTOMER" {% if ticket.status == 'WAITING_CUSTOMER' %}selected{% endif %}>STATUS: WAITING CUSTOMER</option>
+                <option value="RESOLVED" {% if ticket.status == 'RESOLVED' %}selected{% endif %}>STATUS: RESOLVED</option>
+                <option value="CLOSED" {% if ticket.status == 'CLOSED' %}selected{% endif %}>STATUS: CLOSED</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Message Thread -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        <h3 class="text-base font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+            <span>💬</span> Message Conversation Thread
+        </h3>
+
+        <div class="space-y-4">
+            {% for msg in messages_list %}
+            <div class="p-4 rounded-xl border {% if msg.is_admin_reply %}bg-cyan-950/30 border-cyan-500/30 ml-8{% else %}bg-slate-950 border-slate-800 mr-8{% endif %} space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold {% if msg.is_admin_reply %}text-cyan-400{% else %}text-amber-400{% endif %}">
+                        {% if msg.is_admin_reply %}👑 Admin Reply (Sent to Telegram){% else %}👤 {{ msg.sender.full_name }} (Customer){% endif %}
+                    </span>
+                    <span class="text-slate-500 text-[11px]">{{ msg.created_at|date:"Y-m-d H:i UTC" }}</span>
+                </div>
+                <div class="text-sm text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">{{ msg.message }}</div>
+            </div>
+            {% empty %}
+            <div class="text-slate-500 text-sm italic">No messages recorded in thread.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Send Custom Reply Form -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>✈️</span> Write Custom Reply & Send Directly to Customer Telegram
+        </h3>
+        <p class="text-xs text-slate-400">Your reply will be sent directly to {{ ticket.customer.full_name }}'s Telegram bot chat instantly.</p>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_reply">
+            <div>
+                <textarea name="reply_message" rows="4" required placeholder="Type your custom response or instructions to the customer here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white text-xs font-sans focus:outline-none focus:border-cyan-500"></textarea>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs text-slate-400">Update Status To:</label>
+                    <select name="status" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-white text-xs">
+                        <option value="IN_PROGRESS">IN_PROGRESS</option>
+                        <option value="WAITING_CUSTOMER">WAITING CUSTOMER</option>
+                        <option value="RESOLVED">RESOLVED</option>
+                        <option value="OPEN">OPEN</option>
+                    </select>
+                </div>
+                <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-extrabold text-xs shadow-lg shadow-cyan-600/20 transition flex items-center gap-2">
+                    <span>🚀</span> Dispatch Reply to Customer Telegram
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Verification Providers Config{% endblock %}
+
+{% block content %}
+<div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <table class="w-full text-left text-sm">
+        <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+            <tr>
+                <th class="p-4">Provider Name</th>
+                <th class="p-4">Type</th>
+                <th class="p-4">Environment</th>
+                <th class="p-4">Mode</th>
+                <th class="p-4">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800">
+            {% for p in providers %}
+            <tr>
+                <td class="p-4 font-bold text-white">{{ p.name }}</td>
+                <td class="p-4 text-slate-300">{{ p.provider_type }}</td>
+                <td class="p-4 text-cyan-400 font-mono text-xs">{{ p.environment }}</td>
+                <td class="p-4">
+                    {% if p.test_mode %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-amber-950 text-amber-400 border border-amber-800">TEST MODE</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-emerald-950 text-emerald-400 border border-emerald-800">PRODUCTION</span>
+                    {% endif %}
+                </td>
+                <td class="p-4">
+                    {% if p.active %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">ACTIVE</span>
+                    {% else %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400">DISABLED</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="p-6 text-center text-slate-500">No verification providers configured.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

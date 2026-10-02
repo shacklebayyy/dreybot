@@ -1,0 +1,50 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Product Management{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-xl font-bold text-white">Educational Document Products</h2>
+    <a href="{% url 'dashboard:product_create' %}" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition">
+        + Add New Product
+    </a>
+</div>
+
+<div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <table class="w-full text-left text-sm">
+        <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+            <tr>
+                <th class="p-4">Name</th>
+                <th class="p-4">Category</th>
+                <th class="p-4">Region</th>
+                <th class="p-4">Price</th>
+                <th class="p-4">Format</th>
+                <th class="p-4">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800">
+            {% for p in products %}
+            <tr>
+                <td class="p-4 font-semibold text-white">{{ p.name }}</td>
+                <td class="p-4 text-slate-300">{{ p.category.name }}</td>
+                <td class="p-4 text-slate-400">
+                    {{ p.country.flag_emoji }} {{ p.country.name|default:"Global" }}
+                    {% if p.state %}- {{ p.state.name }}{% endif %}
+                </td>
+                <td class="p-4 font-bold text-emerald-400">${{ p.price }}</td>
+                <td class="p-4 text-slate-300"><span class="px-2 py-1 bg-slate-800 rounded text-xs">{{ p.file_type }}</span></td>
+                <td class="p-4">
+                    {% if p.is_active %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">ACTIVE</span>
+                    {% else %}
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400">INACTIVE</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="p-6 text-center text-slate-500">No products found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

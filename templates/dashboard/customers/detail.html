@@ -1,0 +1,111 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Customer Profile - {{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6 pb-12">
+    <!-- Profile Card -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="text-2xl font-bold text-white mb-1">{{ customer.full_name }}</div>
+            <div class="text-sm text-slate-400 font-mono">Telegram ID: {{ customer.telegram_user_id }} | @{{ customer.username|default:"N/A" }}</div>
+            <div class="text-xs text-slate-500 mt-1">Joined: {{ customer.joined_at|date:"Y-m-d H:i" }}</div>
+        </div>
+        <div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle_block">
+                {% if customer.is_blocked %}
+                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition">
+                    Unblock Customer
+                </button>
+                {% else %}
+                <button type="submit" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition">
+                    Block Customer
+                </button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Balance & Bonus Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
+            <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Standard Balance</div>
+            <div class="text-2xl font-extrabold text-cyan-400 font-mono">${{ customer.balance }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
+            <div class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-1">Bonus Balance</div>
+            <div class="text-2xl font-extrabold text-amber-400 font-mono">${{ customer.bonus_balance }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
+            <div class="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-1">Total Available Balance</div>
+            <div class="text-2xl font-extrabold text-emerald-400 font-mono">${{ customer.total_available_balance }}</div>
+        </div>
+    </div>
+
+    <!-- Balance Adjustment & Top Up Approval -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        <div class="border-b border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span>💳</span> Balance Top Up Approval & Credit / Deduct Management
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Approve user deposits or adjust user balance. Automatic Telegram notifications will be dispatched.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Credit Balance / Approve Top Up -->
+            <form method="POST" class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="credit_balance">
+                <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                    <span>➕</span> Credit Balance (Approve Deposit)
+                </h4>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Deposit / Credit Amount ($)</label>
+                    <input type="number" step="0.50" name="amount" required placeholder="50.00" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-mono text-xs focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Bonus Reward Amount ($ - Optional)</label>
+                    <input type="number" step="0.50" name="bonus_amount" value="0.00" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-mono text-xs focus:outline-none focus:border-amber-500">
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition">
+                    Credit Balance & Notify Telegram
+                </button>
+            </form>
+
+            <!-- Deduct Balance -->
+            <form method="POST" class="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="deduct_balance">
+                <h4 class="text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
+                    <span>➖</span> Deduct Balance
+                </h4>
+                <div>
+                    <label class="block text-[11px] text-slate-400 mb-1">Deduction Amount ($)</label>
+                    <input type="number" step="0.50" name="amount" required placeholder="10.00" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-white font-mono text-xs focus:outline-none focus:border-red-500">
+                </div>
+                <p class="text-[11px] text-slate-500">Deducts from bonus balance first, then standard balance.</p>
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-md transition">
+                    Deduct Balance & Notify Telegram
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Direct Telegram Notification Form -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>💬</span> Send Direct Telegram Notification
+        </h3>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_notify">
+            <textarea name="message" rows="3" required placeholder="Type custom message to customer..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-white text-xs font-sans focus:outline-none focus:border-cyan-500"></textarea>
+            <button type="submit" class="px-6 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition">
+                Send Telegram Notification
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

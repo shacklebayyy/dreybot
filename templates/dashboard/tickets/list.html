@@ -1,0 +1,62 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Support Tickets & Inquiries{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-xl font-extrabold text-white">Customer Support Tickets</h2>
+            <p class="text-xs text-slate-400 mt-1">View user inquiries, custom requests, and dispatch replies directly to Telegram.</p>
+        </div>
+    </div>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="p-4">Ticket #</th>
+                    <th class="p-4">Customer</th>
+                    <th class="p-4">Subject / Message Summary</th>
+                    <th class="p-4">Messages</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4">Last Updated</th>
+                    <th class="p-4">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+                {% for ticket in tickets %}
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="p-4 font-mono font-bold text-cyan-400">{{ ticket.ticket_number }}</td>
+                    <td class="p-4 text-white">
+                        <div class="font-semibold">{{ ticket.customer.full_name }}</div>
+                        <div class="text-[11px] text-slate-400 font-mono">ID: {{ ticket.customer.telegram_user_id }}</div>
+                    </td>
+                    <td class="p-4 text-slate-300 font-medium">
+                        {{ ticket.subject|truncatechars:60 }}
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                            {{ ticket.msg_count }} msg{{ ticket.msg_count|pluralize }}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold {% if ticket.status == 'OPEN' %}bg-amber-950 text-amber-400 border border-amber-800{% elif ticket.status == 'IN_PROGRESS' %}bg-cyan-950 text-cyan-400 border border-cyan-800{% elif ticket.status == 'RESOLVED' %}bg-emerald-950 text-emerald-400 border border-emerald-800{% else %}bg-slate-800 text-slate-400{% endif %}">
+                            {{ ticket.status }}
+                        </span>
+                    </td>
+                    <td class="p-4 text-slate-400 text-xs">{{ ticket.updated_at|date:"Y-m-d H:i" }}</td>
+                    <td class="p-4">
+                        <a href="{% url 'dashboard:ticket_detail' ticket.id %}" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition">
+                            View & Reply
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="p-8 text-center text-slate-500">No support tickets found. Messages typed by users in Telegram will automatically appear here!</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

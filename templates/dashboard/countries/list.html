@@ -1,0 +1,60 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Country Management{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 h-fit">
+        <h3 class="text-base font-bold text-white mb-4">Add Country</h3>
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Country Name</label>
+                <input type="text" name="name" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">ISO Code (e.g. US, CA)</label>
+                <input type="text" name="iso_code" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Flag Emoji (e.g. 🇺🇸)</label>
+                <input type="text" name="flag_emoji" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-cyan-500">
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm transition">
+                Save Country
+            </button>
+        </form>
+    </div>
+
+    <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-950 text-slate-400 text-xs uppercase">
+                <tr>
+                    <th class="p-4">Flag</th>
+                    <th class="p-4">Name</th>
+                    <th class="p-4">ISO Code</th>
+                    <th class="p-4">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+                {% for c in countries %}
+                <tr>
+                    <td class="p-4 text-xl">{{ c.flag_emoji }}</td>
+                    <td class="p-4 font-semibold text-white">{{ c.name }}</td>
+                    <td class="p-4 font-mono text-cyan-400">{{ c.iso_code }}</td>
+                    <td class="p-4">
+                        {% if c.active %}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">ACTIVE</span>
+                        {% else %}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400">INACTIVE</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="p-4 text-center text-slate-500">No countries registered.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
