@@ -4,6 +4,7 @@ set -o errexit
 
 # 1. Always run database migrations and seed data FIRST before starting services
 python manage.py migrate --no-input
+python manage.py init_superuser
 python manage.py seed_data
 
 # 2. Start Telegram Bot in background
