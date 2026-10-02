@@ -174,18 +174,18 @@ async def cb_process_payment(call: CallbackQuery):
         from payments.services import process_wallet_payment
         res = await sync_to_async(process_wallet_payment)(order)
         if res.get('success'):
-            token_obj = res.get('token')
-            dl_url = f"http://dreydocs.local/download/{token_obj.token}/" if token_obj else "Ready in menu"
+            kb = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🏠 Main Menu", callback_data="main_menu")]
+            ])
             text = (
                 f"✅ *PAYMENT CONFIRMED (PAID VIA WALLET)*\n\n"
-                f"📋 *Order:* `{order.order_number}`\n"
+                f"📋 *Order Number:* `{order.order_number}`\n"
                 f"💰 *Amount Paid:* `${order.total}` {order.currency}\n"
-                f"👛 *Remaining Balance:* `${res.get('remaining_balance')}`\n"
-                f"Status: *PAID / COMPLETED*\n\n"
-                f"🎉 Your download is ready!\n\n"
-                f"📥 [CLICK HERE TO DOWNLOAD YOUR FILE]({dl_url})"
+                f"👛 *Available Balance:* `${res.get('remaining_balance')}`\n"
+                f"⏳ *Status:* PAID / PROCESSING\n\n"
+                f"Your payment has been received! Our admin team has been notified and is preparing your document. Your file will be delivered directly to your Telegram chat shortly!"
             )
-            await call.message.edit_text(text, parse_mode="Markdown")
+            await call.message.edit_text(text, parse_mode="Markdown", reply_markup=kb)
             await call.answer("Order paid from wallet balance!", show_alert=True)
             return
         else:
@@ -193,17 +193,16 @@ async def cb_process_payment(call: CallbackQuery):
             kb = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="💰 TOP UP BALANCE NOW", callback_data="topup_start")],
                 [InlineKeyboardButton(text="⚡ PAY WITH CRYPTO", callback_data=f"pay:{order_number}:CRYPTO")],
-                [InlineKeyboardButton(text="🧪 TEST INSTANT CONFIRM", callback_data=f"pay:{order_number}:MOCK")],
-                [InlineKeyboardButton(text="🔙 Back", callback_data="main_menu")]
+                [InlineKeyboardButton(text="🔙 Back to Main Menu", callback_data="main_menu")]
             ])
             text = (
                 f"❌ *INSUFFICIENT WALLET BALANCE*\n\n"
                 f"📋 *Order:* `{order.order_number}`\n"
                 f"💰 *Required Amount:* `${res.get('required')}` USD\n"
-                f"👛 *Your Total Available Balance:* `${res.get('available')}`\n"
+                f"👛 *Your Available Balance:* `${res.get('available')}` USD\n"
                 f"⚠️ *Shortfall:* `${res.get('shortfall')}` USD\n\n"
                 f"You do not have enough funds in your account balance to complete this order.\n"
-                f"Please top up your balance or select another payment option below:"
+                f"Please top up your balance or select another option below:"
             )
             await call.message.edit_text(text, parse_mode="Markdown", reply_markup=kb)
             await call.answer("Insufficient wallet balance!", show_alert=True)
@@ -212,22 +211,17 @@ async def cb_process_payment(call: CallbackQuery):
     if provider_type == 'MOCK':
         confirmed = await sync_to_async(process_payment_confirmation)(order_number)
         if confirmed:
-            def fetch_token():
-                order.refresh_from_db()
-                return order.download_tokens.first()
-
-            token_obj = await sync_to_async(fetch_token)()
-            dl_url = f"https://dreydocs.local/download/{token_obj.token}/" if token_obj else "Ready in dashboard"
-
+            kb = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🏠 Main Menu", callback_data="main_menu")]
+            ])
             text = (
                 f"✅ *PAYMENT SUCCESSFUL*\n\n"
-                f"📋 *Order:* `{order.order_number}`\n"
+                f"📋 *Order Number:* `{order.order_number}`\n"
                 f"💰 *Total:* `${order.total}` {order.currency}\n"
-                f"Status: *PAID*\n\n"
-                f"🎉 Your download is ready!\n\n"
-                f"📥 [CLICK HERE TO DOWNLOAD YOUR FILE]({dl_url})"
+                f"⏳ *Status:* PAID / PROCESSING\n\n"
+                f"Your payment has been verified! An admin has been notified and is preparing your document. Your file will be sent directly to this chat shortly!"
             )
-            await call.message.edit_text(text, parse_mode="Markdown")
+            await call.message.edit_text(text, parse_mode="Markdown", reply_markup=kb)
             await call.answer("Payment verified!", show_alert=True)
             return
 

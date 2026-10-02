@@ -60,9 +60,8 @@ def get_payment_methods_keyboard(order_number):
     buttons = [
         [InlineKeyboardButton(text="👛 PAY WITH WALLET BALANCE", callback_data=f"pay:{order_number}:WALLET")],
         [InlineKeyboardButton(text="⚡ PAY WITH CRYPTO (USDT / BTC / ETH)", callback_data=f"pay:{order_number}:CRYPTO")],
+        [InlineKeyboardButton(text="💳 STRIPE / CARD PAYMENT", callback_data=f"pay:{order_number}:STRIPE")],
         [InlineKeyboardButton(text="🧪 TEST INSTANT CONFIRM", callback_data=f"pay:{order_number}:MOCK")],
-        [InlineKeyboardButton(text="💳 STRIPE (Card)", callback_data=f"pay:{order_number}:STRIPE")],
-        [InlineKeyboardButton(text="📱 M-PESA", callback_data=f"pay:{order_number}:MPESA")],
         [InlineKeyboardButton(text="❌ CANCEL ORDER", callback_data=f"cancel_order:{order_number}")]
     ]
 

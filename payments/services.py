@@ -105,17 +105,13 @@ def process_wallet_payment(order: Order) -> dict:
             'shortfall': shortfall
         }
 
-    # Deduct balance
-    customer.deduct_balance(order.total)
-
-    # Update Order
+    # Mark Order as PAID but keep order_status as PENDING awaiting admin document delivery
     order.payment_status = PaymentStatus.PAID
-    order.order_status = OrderStatus.COMPLETED
+    order.order_status = OrderStatus.PENDING
     order.paid_at = timezone.now()
-    order.completed_at = timezone.now()
     order.save()
 
-    # Create Payment record
+    # Create Payment record (balance will be deducted when admin fulfills/delivers file)
     Payment.objects.create(
         order=order,
         provider=PaymentProviderType.WALLET,
@@ -123,24 +119,26 @@ def process_wallet_payment(order: Order) -> dict:
         amount=order.total,
         currency=order.currency,
         status=PaymentTransactionStatus.PAID,
-        raw_response={'wallet_deducted': True, 'remaining_balance': str(customer.total_available_balance)}
+        raw_response={'wallet_deducted': False, 'reserved_amount': str(order.total)}
     )
-
-    from downloads.services import generate_download_tokens_for_order
-    tokens = generate_download_tokens_for_order(order)
-    token_obj = tokens[0] if tokens else order.download_tokens.first()
 
     try:
         from notifications.services import notify_admins
         items_str = ", ".join([item.product.name for item in order.items.all()]) or "Document Order"
         cust = customer.first_name or customer.username or f"ID:{customer.telegram_user_id}"
         notify_admins(
-            f"💰 *ORDER PAID (WALLET)*\n\n"
-            f"📋 *Order:* `{order.order_number}`\n"
+            f"💰 *ORDER PAID VIA WALLET #{order.order_number}*\n\n"
             f"👤 *Customer:* `{cust}` (@{customer.username or 'N/A'})\n"
             f"📦 *Item:* {items_str}\n"
-            f"💵 *Amount Paid:* ${order.total:.2f} USD\n"
-            f"⚡ *Status:* COMPLETED / PAID"
+            f"💵 *Amount:* ${order.total:.2f} USD\n"
+            f"⏳ *Status:* PAID - AWAITING ADMIN FILE DELIVERY",
+            reply_markup={
+                'inline_keyboard': [
+                    [{'text': '📤 Upload & Deliver File', 'callback_data': f'adm_order_deliver:{order.id}'}],
+                    [{'text': '✅ Mark Completed', 'callback_data': f'adm_order_paid:{order.id}'}],
+                    [{'text': '❌ Cancel Order', 'callback_data': f'adm_order_cancel:{order.id}'}]
+                ]
+            }
         )
     except Exception as e:
         print(f"Failed to send admin paid notification: {e}")
@@ -148,7 +146,6 @@ def process_wallet_payment(order: Order) -> dict:
     return {
         'success': True,
         'order': order,
-        'token': token_obj,
         'remaining_balance': customer.total_available_balance
     }
 
