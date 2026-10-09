@@ -34,6 +34,7 @@ async def cb_verification_selected(call: CallbackQuery):
     text = (
         f"📋 *{service.name}*\n\n"
         f"💰 *Fee:* `${service.price}` {service.currency}\n"
+        f"⏱ *Turnaround Time:* Order ready within *5 to 30 minutes*\n"
         f"ℹ️ {service.description}\n\n"
         f"=============================\n"
         f"⚖️ *AUTHORIZATION & CONSENT REQUIRED:*\n"
@@ -72,18 +73,20 @@ async def cb_consent_given(call: CallbackQuery):
     service, executed_req, res = await sync_to_async(process_consent_verif)()
 
     result_text = (
-        f"✅ *VERIFICATION COMPLETE*\n\n"
+        f"✅ *VERIFICATION REQUEST RECEIVED*\n\n"
         f"📋 *Request Number:* `{executed_req.verification_number}`\n"
         f"🔎 *Service:* {service.name}\n"
+        f"💰 *Fee:* `${service.price}` {service.currency}\n"
+        f"⏱ *Turnaround Time:* Ready within *5 to 30 minutes*\n"
         f"Status: *{executed_req.status}*\n\n"
-        f"📊 *VERIFICATION RESULTS:*\n"
+        f"📊 *VERIFICATION DETAILS:*\n"
         f"• Result: `{res.get('status', 'MATCH')}`\n"
         f"• Name Match: `{res.get('name_match', 'MATCH')}`\n"
         f"• Identifier: `{res.get('identifier', res.get('ein', '***-**-1234'))}`\n"
         f"• Provider: {res.get('provider', 'Authorized Verification Provider')}\n"
-        f"• Verified At: {executed_req.completed_at.strftime('%Y-%m-%d %H:%M UTC')}\n\n"
-        f"ℹ️ _{res.get('notice', 'Sensitive fields masked in accordance with compliance controls.')}_"
+        f"• Processing Time: Ready within 5 to 30 minutes\n\n"
+        f"ℹ️ _{res.get('notice', 'Sensitive fields masked in accordance with compliance controls. Verification results will be delivered directly to this chat within 5 to 30 minutes.')}_"
     )
 
     await call.message.edit_text(result_text, parse_mode="Markdown")
-    await call.answer("Verification completed.", show_alert=True)
+    await call.answer("Verification submitted! Ready within 5 to 30 minutes.", show_alert=True)

