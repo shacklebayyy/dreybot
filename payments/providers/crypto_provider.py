@@ -5,7 +5,7 @@ from typing import Dict, Any
 class CryptoPaymentProvider(PaymentProviderInterface):
     def __init__(self):
         self.api_key = getattr(settings, 'CRYPTO_API_KEY', '')
-        self.usdt_address = getattr(settings, 'CRYPTO_USDT_ADDRESS', '0x1234567890abcdef1234567890abcdef12345678')
+        self.usdt_address = getattr(settings, 'CRYPTO_USDT_ADDRESS', 'TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7')
 
     def initialize_payment(self, reference: str, amount: float, currency: str, description: str, customer_email: str = '') -> Dict[str, Any]:
         return {

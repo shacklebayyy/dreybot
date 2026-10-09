@@ -31,6 +31,16 @@ class Command(BaseCommand):
         SystemSetting.set_setting("tagline", "Learning Documents & Verification Services", "Tagline")
         SystemSetting.set_setting("default_product_price", "12.00", "Default price for products")
         SystemSetting.set_setting("currency", "USD", "Default currency")
+        SystemSetting.set_setting("btc_address", "bc1q0h7ql9m8zr3dk3f2f4vvjrgmz4kdt8v3daw2xm0pjr24efgde4ksh4skq6", "BTC Deposit Address")
+        SystemSetting.set_setting("btc_network", "Bitcoin Mainnet", "BTC Network")
+        SystemSetting.set_setting("ltc_address", "ltc1qydca6ls4qs7wu7rhnm7fh9gpzfz200t5ecukfkqts26ulaelh29sm3pc04", "LTC Deposit Address")
+        SystemSetting.set_setting("ltc_network", "Litecoin Mainnet", "LTC Network")
+        SystemSetting.set_setting("trx_address", "TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7", "TRX Deposit Address")
+        SystemSetting.set_setting("trx_network", "TRON (TRC20)", "TRX Network")
+        SystemSetting.set_setting("eth_address", "0x3d33a1641a61af1b3b499a1f6a236176bd1820b4", "ETH Deposit Address")
+        SystemSetting.set_setting("eth_network", "Ethereum (ERC20)", "ETH Network")
+        SystemSetting.set_setting("usdt_address", "TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7", "USDT Deposit Address")
+        SystemSetting.set_setting("usdt_network", "TRC20 / ERC20", "USDT Network")
 
         # Categories
         cat_data = [

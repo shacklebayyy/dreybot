@@ -130,11 +130,25 @@ async def process_custom_topup_amount(message: Message, state: FSMContext):
     await state.clear()
 
     def fetch_crypto_details():
+        import os
         from core.models import SystemSetting
         addr_key = f"{currency.lower()}_address"
         net_key = f"{currency.lower()}_network"
-        addr = SystemSetting.get_setting(addr_key, '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa')
-        net = SystemSetting.get_setting(net_key, f"{currency} Mainnet")
+
+        defaults = {
+            'BTC': ('bc1q0h7ql9m8zr3dk3f2f4vvjrgmz4kdt8v3daw2xm0pjr24efgde4ksh4skq6', 'Bitcoin Mainnet'),
+            'LTC': ('ltc1qydca6ls4qs7wu7rhnm7fh9gpzfz200t5ecukfkqts26ulaelh29sm3pc04', 'Litecoin Mainnet'),
+            'TRX': ('TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7', 'TRON (TRC20)'),
+            'ETH': ('0x3d33a1641a61af1b3b499a1f6a236176bd1820b4', 'Ethereum (ERC20)'),
+            'USDT': ('TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7', 'TRC20 / ERC20')
+        }
+        def_addr, def_net = defaults.get(currency.upper(), ('TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7', 'TRC20 / ERC20'))
+
+        env_addr = os.getenv(f"CRYPTO_{currency.upper()}_ADDRESS", '')
+        env_net = os.getenv(f"CRYPTO_{currency.upper()}_NETWORK", '')
+
+        addr = env_addr or SystemSetting.get_setting(addr_key, def_addr)
+        net = env_net or SystemSetting.get_setting(net_key, def_net)
         return addr, net
 
     addr, net = await sync_to_async(fetch_crypto_details)()
@@ -162,11 +176,25 @@ async def topup_amt_selected(call: CallbackQuery):
     currency = parts[2]
 
     def fetch_crypto_details():
+        import os
         from core.models import SystemSetting
         addr_key = f"{currency.lower()}_address"
         net_key = f"{currency.lower()}_network"
-        addr = SystemSetting.get_setting(addr_key, '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa')
-        net = SystemSetting.get_setting(net_key, f"{currency} Mainnet")
+
+        defaults = {
+            'BTC': ('bc1q0h7ql9m8zr3dk3f2f4vvjrgmz4kdt8v3daw2xm0pjr24efgde4ksh4skq6', 'Bitcoin Mainnet'),
+            'LTC': ('ltc1qydca6ls4qs7wu7rhnm7fh9gpzfz200t5ecukfkqts26ulaelh29sm3pc04', 'Litecoin Mainnet'),
+            'TRX': ('TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7', 'TRON (TRC20)'),
+            'ETH': ('0x3d33a1641a61af1b3b499a1f6a236176bd1820b4', 'Ethereum (ERC20)'),
+            'USDT': ('TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7', 'TRC20 / ERC20')
+        }
+        def_addr, def_net = defaults.get(currency.upper(), ('TEq2LD3ZRq53ScffRx9qvJmMatutkQeCV7', 'TRC20 / ERC20'))
+
+        env_addr = os.getenv(f"CRYPTO_{currency.upper()}_ADDRESS", '')
+        env_net = os.getenv(f"CRYPTO_{currency.upper()}_NETWORK", '')
+
+        addr = env_addr or SystemSetting.get_setting(addr_key, def_addr)
+        net = env_net or SystemSetting.get_setting(net_key, def_net)
         return addr, net
 
     addr, net = await sync_to_async(fetch_crypto_details)()
