@@ -12,6 +12,7 @@ django.setup()
 
 from django.conf import settings
 from aiogram import Bot, Dispatcher
+from aiogram.types import BotCommand
 from telegram_bot.handlers import (
     start, catalog, cart_order, verification, account, support, coupons, search, admin
 )
@@ -39,8 +40,6 @@ async def main():
     dp.include_router(coupons.router)
     dp.include_router(search.router)
     dp.include_router(support.router)
-
-from aiogram.types import BotCommand
 
     # Register Bot Commands for Telegram UI Menu Button
     try:
