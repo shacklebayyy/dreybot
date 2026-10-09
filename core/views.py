@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from catalog.models import Category, Product
 
 def landing_page(request):
@@ -12,3 +13,6 @@ def landing_page(request):
         'categories': categories,
         'featured_products': featured_products
     })
+
+def ping_health_check(request):
+    return HttpResponse("OK - DreyDocs Active", content_type="text/plain", status=200)

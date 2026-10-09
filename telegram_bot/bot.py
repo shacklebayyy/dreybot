@@ -20,6 +20,28 @@ from telegram_bot.handlers import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+async def keep_alive_ping():
+    import urllib.request
+    await asyncio.sleep(10)
+    url = os.getenv("RENDER_EXTERNAL_URL", "")
+    if not url:
+        port = os.getenv("PORT", "8000")
+        url = f"http://127.0.0.1:{port}/ping/"
+    else:
+        if not url.endswith("/"):
+            url += "/"
+        url += "ping/"
+
+    logger.info(f"Self Keep-Alive Ping Task active targeting: {url}")
+    while True:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'DreyDocs-KeepAlive/1.0'})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                logger.info(f"Keep-Alive ping sent to {url} - Status: {resp.status}")
+        except Exception as e:
+            logger.debug(f"Keep-Alive ping check: {e}")
+        await asyncio.sleep(540)
+
 async def main():
     token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
     if not token or token == '123456789:ABCdefGHIjklMNOpqrsTUVwxyz':
@@ -52,6 +74,9 @@ async def main():
         ])
     except Exception as e:
         logger.warning(f"Could not set bot commands: {e}")
+
+    # Start 24/7 Keep-Alive Background Task to Prevent Render Sleeping
+    asyncio.create_task(keep_alive_ping())
 
     logger.info("DreyDocs Telegram Bot starting long polling...")
     await bot.delete_webhook(drop_pending_updates=True)
