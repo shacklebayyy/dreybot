@@ -40,6 +40,20 @@ async def main():
     dp.include_router(search.router)
     dp.include_router(support.router)
 
+from aiogram.types import BotCommand
+
+    # Register Bot Commands for Telegram UI Menu Button
+    try:
+        await bot.set_my_commands([
+            BotCommand(command="start", description="🚀 Main Menu & Welcome"),
+            BotCommand(command="menu", description="📱 Open Main Menu Keyboard"),
+            BotCommand(command="cc", description="💳 CC Service ($20.00)"),
+            BotCommand(command="search", description="🔍 Search Templates & Services"),
+            BotCommand(command="cancel", description="❌ Cancel Current Operation")
+        ])
+    except Exception as e:
+        logger.warning(f"Could not set bot commands: {e}")
+
     logger.info("DreyDocs Telegram Bot starting long polling...")
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

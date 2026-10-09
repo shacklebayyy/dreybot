@@ -5,9 +5,13 @@ from asgiref.sync import sync_to_async
 from accounts.services import get_or_create_telegram_user
 from telegram_bot.keyboards.reply import get_main_menu_keyboard
 
+from aiogram.filters import CommandStart, Command
+
 router = Router()
 
 @router.message(CommandStart())
+@router.message(Command("menu"))
+@router.message(F.text.in_({"MAIN MENU", "Menu", "MENU", "/menu"}))
 async def cmd_start(message: Message):
     tg_user = message.from_user
     profile = await sync_to_async(get_or_create_telegram_user)(
