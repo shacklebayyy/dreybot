@@ -67,7 +67,6 @@ class Command(BaseCommand):
             ("Canada", "CA", "🇨🇦"),
             ("United Kingdom", "GB", "🇬🇧"),
             ("Australia", "AU", "🇦🇺"),
-            ("Kenya", "KE", "🇰🇪"),
             ("Uganda", "UG", "🇺🇬"),
             ("Tanzania", "TZ", "🇹🇿"),
             ("South Africa", "ZA", "🇿🇦"),

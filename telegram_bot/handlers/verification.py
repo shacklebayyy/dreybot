@@ -65,7 +65,7 @@ async def cb_consent_given(call: CallbackQuery, state: FSMContext):
     await state.update_data(service_code=service.code)
 
     if service.code == 'credit_consult':
-        format_str = "COUNTRY(EX: USA / KENYA / UK)"
+        format_str = "COUNTRY(EX: USA / UK)"
     else:
         format_str = (
             "FIRST NAME (+ middle if any)\n"
