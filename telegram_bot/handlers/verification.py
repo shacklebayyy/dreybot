@@ -41,6 +41,7 @@ async def handle_cc_direct(message: Message, state: FSMContext):
         f"📋 *Service:* {service.name} (${service.price} {service.currency})\n"
         f"⏱ *Turnaround Time:* Order ready within *5 to 30 minutes*\n\n"
         f"Send the data in this format:\n\n"
+        f"BIN(EX: 411111)\n"
         f"COUNTRY(EX: USA / UK)\n\n"
         f"_Please reply directly to this message with your details._"
     )
@@ -86,7 +87,10 @@ async def cb_consent_given(call: CallbackQuery, state: FSMContext):
     await state.update_data(service_code=service.code)
 
     if service.code == 'credit_consult':
-        format_str = "COUNTRY(EX: USA / UK)"
+        format_str = (
+            "BIN(EX: 411111)\n"
+            "COUNTRY(EX: USA / UK)"
+        )
     else:
         format_str = (
             "FIRST NAME (+ middle if any)\n"
