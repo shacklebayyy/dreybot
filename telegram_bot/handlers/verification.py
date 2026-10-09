@@ -13,7 +13,7 @@ router = Router()
 
 @router.message(F.text == "🔎 VERIFICATION SERVICES")
 async def show_verification_services(message: Message):
-    services = await sync_to_async(lambda: list(VerificationService.objects.filter(active=True)))()
+    services = await sync_to_async(lambda: list(VerificationService.objects.filter(active=True).exclude(code='credit_consult')))()
     text = (
         "🔎 *AUTHORIZED VERIFICATION SERVICES*\n\n"
         "Select the verification check you require.\n"
@@ -24,6 +24,27 @@ async def show_verification_services(message: Message):
         parse_mode="Markdown",
         reply_markup=get_verification_services_keyboard(services)
     )
+
+@router.message(F.text.in_({"CC", "/cc"}))
+async def handle_cc_direct(message: Message, state: FSMContext):
+    service = await sync_to_async(lambda: VerificationService.objects.filter(code='credit_consult').first())()
+    if not service:
+        service = await sync_to_async(lambda: VerificationService.objects.create(
+            name="CC", code="credit_consult", price=5.00, active=True, requires_consent=True
+        ))()
+
+    await state.set_state(VerificationState.waiting_for_user_data)
+    await state.update_data(service_code=service.code)
+
+    prompt_text = (
+        f"✍️ *PLEASE SUBMIT YOUR VERIFICATION DATA*\n\n"
+        f"📋 *Service:* {service.name} (${service.price} {service.currency})\n"
+        f"⏱ *Turnaround Time:* Order ready within *5 to 30 minutes*\n\n"
+        f"Send the data in this format:\n\n"
+        f"COUNTRY(EX: USA / UK)\n\n"
+        f"_Please reply directly to this message with your details._"
+    )
+    await message.answer(prompt_text, parse_mode="Markdown")
 
 @router.callback_query(F.data.startswith("v_svc:"))
 async def cb_verification_selected(call: CallbackQuery):
