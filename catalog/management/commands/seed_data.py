@@ -216,7 +216,7 @@ class Command(BaseCommand):
         # Verification Services
         v_services = [
             ("BACKGROUND CHECK / LIVENESS CHECK", "background_check", "Authorized $1 background check and liveness verification service.", 1.00),
-            ("CC", "credit_consult", "Credit consultation and profile analysis check.", 5.00),
+            ("CC", "credit_consult", "Credit consultation and profile analysis check.", 20.00),
             ("🔍 MANUAL EXTENSIVE SEARCH", "manual_extensive_search", "Deep comprehensive manual record & identity background search.", 20.00),
             ("EIN / BUSINESS VERIFICATION", "ein_verification", "Verify business registration and EIN matching via authorized provider.", 5.00),
             ("TIN VERIFICATION", "tin_verification", "Taxpayer Identification Number verification through official authorized programs.", 5.00),

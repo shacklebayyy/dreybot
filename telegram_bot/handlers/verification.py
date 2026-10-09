@@ -30,7 +30,7 @@ async def handle_cc_direct(message: Message, state: FSMContext):
     service = await sync_to_async(lambda: VerificationService.objects.filter(code='credit_consult').first())()
     if not service:
         service = await sync_to_async(lambda: VerificationService.objects.create(
-            name="CC", code="credit_consult", price=5.00, active=True, requires_consent=True
+            name="CC", code="credit_consult", price=20.00, active=True, requires_consent=True
         ))()
 
     await state.set_state(VerificationState.waiting_for_user_data)
