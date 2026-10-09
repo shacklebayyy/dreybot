@@ -64,18 +64,25 @@ async def cb_consent_given(call: CallbackQuery, state: FSMContext):
     await state.set_state(VerificationState.waiting_for_user_data)
     await state.update_data(service_code=service.code)
 
+    if service.code == 'credit_consult':
+        format_str = "COUNTRY(EX: USA / KENYA / UK)"
+    else:
+        format_str = (
+            "FIRST NAME (+ middle if any)\n"
+            "LAST NAME\n"
+            "DOB(EX: MM/DD/YYYY)\n"
+            "ADDRESS\n"
+            "CITY\n"
+            "STATE(EX:CA)\n"
+            "ZIP"
+        )
+
     prompt_text = (
         f"✍️ *PLEASE SUBMIT YOUR VERIFICATION DATA*\n\n"
         f"📋 *Service:* {service.name} (${service.price} {service.currency})\n"
         f"⏱ *Turnaround Time:* Order ready within *5 to 30 minutes*\n\n"
         f"Send the data in this format:\n\n"
-        f"FIRST NAME (+ middle if any)\n"
-        f"LAST NAME\n"
-        f"DOB(EX: MM/DD/YYYY)\n"
-        f"ADDRESS\n"
-        f"CITY\n"
-        f"STATE(EX:CA)\n"
-        f"ZIP\n\n"
+        f"{format_str}\n\n"
         f"_Please reply directly to this message with your details._"
     )
 
