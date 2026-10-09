@@ -213,32 +213,30 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS("Seeded Example Products."))
 
-        # Verification Services
+        # Verification Services (Enterprise Compliance & KYC Terminology)
         v_services = [
-            ("BACKGROUND CHECK / LIVENESS CHECK", "background_check", "Authorized $1 background check and liveness verification service.", 1.00),
-            ("CC", "credit_consult", "Credit consultation and profile analysis check.", 20.00),
-            ("🔍 MANUAL EXTENSIVE SEARCH", "manual_extensive_search", "Deep comprehensive manual record & identity background search.", 20.00),
-            ("EIN / BUSINESS VERIFICATION", "ein_verification", "Verify business registration and EIN matching via authorized provider.", 5.00),
-            ("TIN VERIFICATION", "tin_verification", "Taxpayer Identification Number verification through official authorized programs.", 5.00),
-            ("SSN VERIFICATION", "ssn_verification", "Social Security Number name & DOB match verification via licensed service.", 5.00),
-            ("IDENTITY VERIFICATION", "identity_verification", "Authorized identity verification check with consent.", 15.00),
-            ("NAME + DOB VERIFICATION", "name_dob_verification", "Name and Date of Birth validation check.", 8.00),
-            ("EMPLOYMENT VERIFICATION", "employment_verification", "Authorized employment verification check.", 12.00),
-            ("BUSINESS REGISTRATION", "business_registration", "Official state business registry verification.", 10.00),
-            ("➕ OTHER / NOT LISTED (Custom Verification)", "custom_verification", "Custom verification service request. Describe your requirements.", 5.00),
+            ("BACKGROUND CHECK / LIVENESS CHECK", "background_check", "Authorized $1 Background Check & Liveness Verification Audit.", 1.00),
+            ("CC", "credit_consult", "Credit Consultation & Financial Profile Analysis.", 20.00),
+            ("🔍 MANUAL EXTENSIVE SEARCH", "manual_extensive_search", "Deep Comprehensive Manual Record & Identity Compliance Audit.", 20.00),
+            ("PRIMARY ID & NAME VERIFICATION", "ssn_verification", "Primary ID & Name Verification via Authorized KYC API.", 5.00),
+            ("DOCUMENT FACIAL MATCH / ID IMAGE VALIDATION", "dl_photo_lookup", "State License & Document Image Validation Match.", 15.00),
+            ("PROOF OF ADDRESS (POA) VALIDATION", "utility_bill_lookup", "Residency & Utility Document Validation Audit.", 5.00),
+            ("FINANCIAL ACCOUNT VERIFICATION", "bank_account_lookup", "Authorized Financial Account & Banking Status Audit.", 12.00),
+            ("BUSINESS REGISTRATION & EIN MATCH", "ein_verification", "Official State Registry & Business EIN Validation.", 5.00),
+            ("GEOLOCATION & RISK AUDIT", "ip_address_search", "IP Network Geolocation & Risk Assessment Audit.", 5.00),
+            ("DIGITAL FOOTPRINT ASSESSMENT", "social_media_search", "Open-Source Digital Profile & Footprint Assessment.", 5.00),
+            ("REAL ESTATE & LIEN VERIFICATION", "mortgage_record", "Public Property Title & Real Estate Lien Verification.", 10.00),
+            ("➕ CUSTOM COMPLIANCE VERIFICATION", "custom_verification", "Custom KYC / Compliance Verification Request.", 5.00),
         ]
 
         for name, code, desc, price in v_services:
-            VerificationService.objects.get_or_create(
-                code=code,
-                defaults={
-                    "name": name,
-                    "description": desc,
-                    "price": price,
-                    "active": True,
-                    "requires_consent": True,
-                }
-            )
-        self.stdout.write(self.style.SUCCESS("Seeded Verification Services."))
+            svc, created = VerificationService.objects.get_or_create(code=code)
+            svc.name = name
+            svc.description = desc
+            svc.price = price
+            svc.active = True
+            svc.requires_consent = True
+            svc.save()
+        self.stdout.write(self.style.SUCCESS("Seeded Enterprise Compliance & KYC Verification Services."))
 
         self.stdout.write(self.style.SUCCESS("All seed data created successfully!"))
