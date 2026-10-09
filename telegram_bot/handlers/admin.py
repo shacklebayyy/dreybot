@@ -45,14 +45,16 @@ async def admin_dashboard_cmd(message: Message):
         pending_orders = Order.objects.filter(payment_status='PENDING').count()
         pending_topups = TopUpRequest.objects.filter(status='PENDING').count()
         open_tickets = SupportTicket.objects.filter(status__in=['OPEN', 'IN_PROGRESS']).count()
-        return pending_orders, pending_topups, open_tickets
+        pending_verifs = VerificationRequest.objects.filter(status__in=['AWAITING_PAYMENT', 'PROCESSING', 'QUEUED']).count()
+        return pending_orders, pending_topups, open_tickets, pending_verifs
 
-    p_orders, p_topups, o_tickets = await sync_to_async(get_stats_summary)()
+    p_orders, p_topups, o_tickets, p_verifs = await sync_to_async(get_stats_summary)()
 
     text = (
         "🔐 *ADMIN TELEGRAM MANAGEMENT DESK*\n\n"
         f"• Pending Custom & Product Orders: *{p_orders}*\n"
         f"• Pending Top-Up Deposit Proofs: *{p_topups}*\n"
+        f"• Pending Verification Submissions: *{p_verifs}*\n"
         f"• Open Support Tickets: *{o_tickets}*\n\n"
         "Choose an action below to manage requests directly in Telegram:"
     )
@@ -60,8 +62,9 @@ async def admin_dashboard_cmd(message: Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"🛒 Manage Orders ({p_orders})", callback_data="adm_orders_menu")],
         [InlineKeyboardButton(text=f"💰 Top-Up Proofs ({p_topups})", callback_data="adm_topups_menu")],
-        [InlineKeyboardButton(text="🔎 Verification Services ($1 BG Check)", callback_data="adm_services_menu")],
+        [InlineKeyboardButton(text=f"📋 Pending Verifications ({p_verifs})", callback_data="adm_verifications_menu")],
         [InlineKeyboardButton(text=f"🎫 Support Tickets ({o_tickets})", callback_data="adm_tickets_menu")],
+        [InlineKeyboardButton(text="🔎 Verification Services ($1 BG Check)", callback_data="adm_services_menu")],
         [InlineKeyboardButton(text="📊 Revenue & Stats", callback_data="adm_stats_menu")],
         [InlineKeyboardButton(text="📢 Broadcast Message", callback_data="adm_broadcast_prompt")]
     ])
@@ -120,14 +123,16 @@ async def cb_adm_main_menu(call: CallbackQuery):
         pending_orders = Order.objects.filter(payment_status='PENDING').count()
         pending_topups = TopUpRequest.objects.filter(status='PENDING').count()
         open_tickets = SupportTicket.objects.filter(status__in=['OPEN', 'IN_PROGRESS']).count()
-        return pending_orders, pending_topups, open_tickets
+        pending_verifs = VerificationRequest.objects.filter(status__in=['AWAITING_PAYMENT', 'PROCESSING', 'QUEUED']).count()
+        return pending_orders, pending_topups, open_tickets, pending_verifs
 
-    p_orders, p_topups, o_tickets = await sync_to_async(get_stats_summary)()
+    p_orders, p_topups, o_tickets, p_verifs = await sync_to_async(get_stats_summary)()
 
     text = (
         "🔐 *ADMIN TELEGRAM MANAGEMENT DESK*\n\n"
         f"• Pending Custom & Product Orders: *{p_orders}*\n"
         f"• Pending Top-Up Deposit Proofs: *{p_topups}*\n"
+        f"• Pending Verification Submissions: *{p_verifs}*\n"
         f"• Open Support Tickets: *{o_tickets}*\n\n"
         "Choose an action below to manage requests directly in Telegram:"
     )
@@ -135,8 +140,9 @@ async def cb_adm_main_menu(call: CallbackQuery):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"🛒 Manage Orders ({p_orders})", callback_data="adm_orders_menu")],
         [InlineKeyboardButton(text=f"💰 Top-Up Proofs ({p_topups})", callback_data="adm_topups_menu")],
-        [InlineKeyboardButton(text="🔎 Verification Services ($1 BG Check)", callback_data="adm_services_menu")],
+        [InlineKeyboardButton(text=f"📋 Pending Verifications ({p_verifs})", callback_data="adm_verifications_menu")],
         [InlineKeyboardButton(text=f"🎫 Support Tickets ({o_tickets})", callback_data="adm_tickets_menu")],
+        [InlineKeyboardButton(text="🔎 Verification Services ($1 BG Check)", callback_data="adm_services_menu")],
         [InlineKeyboardButton(text="📊 Revenue & Stats", callback_data="adm_stats_menu")],
         [InlineKeyboardButton(text="📢 Broadcast Message", callback_data="adm_broadcast_prompt")]
     ])
@@ -176,8 +182,8 @@ async def admin_orders_list(event, state: FSMContext = None):
     orders_data = await sync_to_async(fetch_recent_orders)()
 
     if not orders_data:
-        msg = "🛒 *CUSTOMER ORDERS*\n\nNo orders found in database."
-        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back", callback_data="adm_main_menu")]])
+        msg = "🛒 *CUSTOMER ORDERS*\n\n❌ No available records found."
+        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back to Admin Desk", callback_data="adm_main_menu")]])
         if isinstance(event, CallbackQuery):
             await event.message.edit_text(msg, parse_mode="Markdown", reply_markup=kb)
             await event.answer()
@@ -424,8 +430,8 @@ async def admin_topups_list(event, state: FSMContext = None):
     topups_data = await sync_to_async(fetch_pending_topups)()
 
     if not topups_data:
-        msg = "💰 *PENDING TOP-UP PROOFS*\n\nNo pending deposit proofs waiting for approval."
-        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back", callback_data="adm_main_menu")]])
+        msg = "💰 *PENDING TOP-UP PROOFS*\n\n❌ No available records found."
+        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back to Admin Desk", callback_data="adm_main_menu")]])
         if isinstance(event, CallbackQuery):
             await event.message.edit_text(msg, parse_mode="Markdown", reply_markup=kb)
             await event.answer()
@@ -570,8 +576,8 @@ async def admin_tickets_list(event, state: FSMContext = None):
     tickets_data = await sync_to_async(fetch_open_tickets)()
 
     if not tickets_data:
-        msg = "🎫 *SUPPORT TICKETS*\n\nNo open support tickets found."
-        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back", callback_data="adm_main_menu")]])
+        msg = "🎫 *SUPPORT TICKETS*\n\n❌ No available records found."
+        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back to Admin Desk", callback_data="adm_main_menu")]])
         if isinstance(event, CallbackQuery):
             await event.message.edit_text(msg, parse_mode="Markdown", reply_markup=kb)
             await event.answer()
@@ -714,6 +720,75 @@ async def cb_adm_close_tck(call: CallbackQuery):
 
     await call.message.edit_text(f"✅ *TICKET #{ticket.ticket_number} CLOSED.*", parse_mode="Markdown")
     await call.answer("Ticket closed.")
+
+# VERIFICATION SUBMISSIONS LIST & MANAGEMENT
+@router.message(F.text == "/verifications")
+@router.callback_query(F.data == "adm_verifications_menu")
+async def admin_verifications_list(event, state: FSMContext = None):
+    telegram_id = event.from_user.id
+    if not await is_admin(telegram_id):
+        if isinstance(event, CallbackQuery):
+            await event.answer("Access denied", show_alert=True)
+        else:
+            await event.answer("⛔ Access denied.")
+        return
+
+    def fetch_pending_verifs():
+        verifs = list(VerificationRequest.objects.filter(status__in=['AWAITING_PAYMENT', 'PROCESSING', 'QUEUED']).select_related('customer', 'service').order_by('-created_at')[:10])
+        results = []
+        for v in verifs:
+            cust = v.customer.first_name or v.customer.username or f"ID:{v.customer.telegram_user_id}"
+            data_str = v.result.get('submitted_data', 'No submitted data attached') if isinstance(v.result, dict) else str(v.result)
+            results.append({
+                'id': v.id,
+                'verification_number': v.verification_number,
+                'customer': cust,
+                'service_name': v.service.name,
+                'price': v.price,
+                'currency': v.currency,
+                'status': v.status,
+                'data': data_str,
+                'created_at': v.created_at.strftime('%Y-%m-%d %H:%M')
+            })
+        return results
+
+    verifs_data = await sync_to_async(fetch_pending_verifs)()
+
+    if not verifs_data:
+        msg = "📋 *PENDING VERIFICATION REQUESTS*\n\n❌ No available records found."
+        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back to Admin Desk", callback_data="adm_main_menu")]])
+        if isinstance(event, CallbackQuery):
+            await event.message.edit_text(msg, parse_mode="Markdown", reply_markup=kb)
+            await event.answer()
+        else:
+            await event.answer(msg, parse_mode="Markdown", reply_markup=kb)
+        return
+
+    intro = "📋 *PENDING VERIFICATION SUBMISSIONS*\nClick deliver to send verification results or mark failed:\n\n"
+    if isinstance(event, CallbackQuery):
+        await event.message.answer(intro, parse_mode="Markdown")
+        await event.answer()
+    else:
+        await event.answer(intro, parse_mode="Markdown")
+
+    for v in verifs_data:
+        card = (
+            f"📋 *Verification #{v['verification_number']}*\n"
+            f"👤 Customer: `{v['customer']}`\n"
+            f"🔎 Service: *{v['service_name']}* (${v['price']:.2f} {v['currency']})\n"
+            f"📄 Data:\n```\n{v['data']}\n```\n"
+            f"⏳ Status: *{v['status']}*"
+        )
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(text="📤 Send Result to Customer", callback_data=f"adm_verif_deliver:{v['id']}"),
+            InlineKeyboardButton(text="❌ Mark Failed", callback_data=f"adm_verif_fail:{v['id']}")
+        ]])
+        
+        if isinstance(event, CallbackQuery):
+            await event.message.answer(card, parse_mode="Markdown", reply_markup=kb)
+        else:
+            await event.answer(card, parse_mode="Markdown", reply_markup=kb)
+
 
 # BROADCAST PROMPT & EXECUTION
 @router.callback_query(F.data == "adm_broadcast_prompt")

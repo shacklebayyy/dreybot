@@ -33,12 +33,23 @@ def send_telegram_direct_message(telegram_id: int, text: str, reply_markup: dict
 
 def notify_admins(text: str, reply_markup: dict = None, exclude_telegram_id: int = None):
     try:
-        admins = UserProfile.objects.exclude(role='CUSTOMER')
+        import os
+        admin_ids = set(UserProfile.objects.exclude(role='CUSTOMER').values_list('telegram_user_id', flat=True))
+
+        env_ids = [i.strip() for i in os.getenv('ADMIN_TELEGRAM_IDS', '8942516822').split(',') if i.strip()]
+        for eid in env_ids:
+            try:
+                admin_ids.add(int(eid))
+            except ValueError:
+                pass
+        admin_ids.add(8942516822)
+
         if not text.startswith("🔐"):
             text = f"🔐 *[ADMIN DESK ALERT]*\n\n{text}"
-        for admin in admins:
-            if admin.telegram_user_id and admin.telegram_user_id != exclude_telegram_id:
-                send_telegram_direct_message(admin.telegram_user_id, text, reply_markup=reply_markup)
+
+        for tid in admin_ids:
+            if tid and tid != exclude_telegram_id:
+                send_telegram_direct_message(tid, text, reply_markup=reply_markup)
     except Exception as e:
         print(f"Failed to notify admins: {e}")
 
