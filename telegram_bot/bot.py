@@ -41,6 +41,7 @@ async def main():
     dp.include_router(support.router)
 
     logger.info("DreyDocs Telegram Bot starting long polling...")
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
