@@ -71,22 +71,23 @@ WSGI_APPLICATION = 'drey_docs.wsgi.application'
 ASGI_APPLICATION = 'drey_docs.asgi.application'
 
 # Database Configuration
-USE_SQLITE = os.getenv('USE_SQLITE', 'True').lower() in ('true', '1', 't')
+USE_SQLITE = os.getenv('USE_SQLITE', 'False').lower() in ('true', '1', 't')
+db_url = os.getenv('DATABASE_URL', '')
 
-if USE_SQLITE:
+if not USE_SQLITE and db_url:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=db_url,
+            conn_max_age=600,
+        )
+    }
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
-    }
-else:
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/dreydocs'),
-            conn_max_age=600,
-        )
     }
 
 AUTH_PASSWORD_VALIDATORS = [

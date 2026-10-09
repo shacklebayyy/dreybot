@@ -15,6 +15,19 @@ services:
       - key: ALLOWED_HOSTS
         value: "*"
       - key: USE_SQLITE
-        value: "True"
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dreydocs-db
+          property: connectionString
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+      - key: ADMIN_TELEGRAM_IDS
+        value: "8942516822"
+      - key: ADMIN_TELEGRAM_USERNAMES
+        value: "Dreydocbot"
+
+databases:
+  - name: dreydocs-db
+    region: oregon
+    plan: free

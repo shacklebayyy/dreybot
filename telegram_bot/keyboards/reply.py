@@ -2,7 +2,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 def get_main_menu_keyboard(is_admin: bool = False):
     keyboard = [
-        [KeyboardButton(text="CC"), KeyboardButton(text="🔎 VERIFICATION SERVICES")],
+        [KeyboardButton(text="CC")],
+        [KeyboardButton(text="🔎 VERIFICATION SERVICES")],
         [KeyboardButton(text="💰 TOP UP BALANCE"), KeyboardButton(text="👤 MY ACCOUNT")],
         [KeyboardButton(text="📄 ID TEMPLATES"), KeyboardButton(text="🛂 PASSPORT TEMPLATES")],
         [KeyboardButton(text="🚗 DRIVER LICENSE TEMPLATES"), KeyboardButton(text="🏢 BUSINESS DOCUMENTS")],
