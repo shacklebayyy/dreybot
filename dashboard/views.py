@@ -203,6 +203,25 @@ def order_detail(request, order_id):
             )
             dispatch_notification(order.customer, msg, title="Payment Confirmed")
             messages.success(request, f"Order {order.order_number} marked as PAID and notification sent to customer.")
+        elif action == 'deduct_balance':
+            customer = order.customer
+            amount = order.total
+            customer.deduct_balance(amount)
+            order.payment_status = PaymentStatus.PAID
+            order.order_status = OrderStatus.COMPLETED
+            order.paid_at = timezone.now()
+            order.completed_at = timezone.now()
+            order.save()
+
+            msg = (
+                f"💸 *BALANCE DEDUCTED FOR ORDER #{order.order_number}*\n\n"
+                f"💰 *Deducted Amount:* `${amount:.2f} USD`\n"
+                f"📋 *Order Total:* `${order.total:.2f} USD`\n"
+                f"👛 *Remaining Balance:* `${customer.total_available_balance:.2f} USD`\n\n"
+                f"Your order has been marked PAID & COMPLETED by admin."
+            )
+            dispatch_notification(customer, msg, title="Order Balance Deducted")
+            messages.success(request, f"Deducted ${amount:.2f} from {customer.full_name}'s balance and marked order PAID!")
         elif action == 'cancel':
             order.order_status = OrderStatus.CANCELLED
             order.payment_status = PaymentStatus.CANCELLED
@@ -318,6 +337,52 @@ def ticket_detail(request, ticket_id):
 def verification_list(request):
     requests_list = VerificationRequest.objects.select_related('customer', 'service').order_by('-created_at')
     return render(request, 'dashboard/verification/list.html', {'requests': requests_list})
+
+@staff_member_required
+def verification_detail(request, req_id):
+    req_obj = get_object_or_404(VerificationRequest, id=req_id)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'deduct_balance':
+            customer = req_obj.customer
+            amount = req_obj.price
+            customer.deduct_balance(amount)
+            req_obj.status = 'COMPLETED'
+            req_obj.completed_at = timezone.now()
+            req_obj.save()
+
+            msg = (
+                f"💸 *BALANCE DEDUCTED FOR VERIFICATION #{req_obj.verification_number}*\n\n"
+                f"🔎 *Service:* {req_obj.service.name}\n"
+                f"💰 *Deducted Amount:* `${amount:.2f} USD`\n"
+                f"👛 *Remaining Balance:* `${customer.total_available_balance:.2f} USD`\n\n"
+                f"Status: *COMPLETED*"
+            )
+            dispatch_notification(customer, msg, title="Verification Balance Deducted")
+            messages.success(request, f"Deducted ${amount:.2f} from {customer.full_name}'s balance and marked request COMPLETED!")
+        elif action == 'mark_completed':
+            req_obj.status = 'COMPLETED'
+            req_obj.completed_at = timezone.now()
+            req_obj.save()
+            msg = (
+                f"✅ *VERIFICATION REQUEST #{req_obj.verification_number} COMPLETED*\n\n"
+                f"🔎 *Service:* {req_obj.service.name}\n"
+                f"Status: *COMPLETED*"
+            )
+            dispatch_notification(req_obj.customer, msg, title="Verification Completed")
+            messages.success(request, f"Verification #{req_obj.verification_number} marked COMPLETED.")
+        elif action == 'mark_failed':
+            req_obj.status = 'FAILED'
+            req_obj.failure_reason = request.POST.get('reason', 'Verification check unverified.')
+            req_obj.save()
+            msg = (
+                f"❌ *VERIFICATION REQUEST #{req_obj.verification_number} FAILED*\n\n"
+                f"Reason: {req_obj.failure_reason}"
+            )
+            dispatch_notification(req_obj.customer, msg, title="Verification Failed")
+            messages.success(request, f"Verification #{req_obj.verification_number} marked FAILED.")
+        return redirect('dashboard:verification_detail', req_id=req_obj.id)
+    return render(request, 'dashboard/verification/detail.html', {'verif': req_obj})
 
 @staff_member_required
 def provider_list(request):

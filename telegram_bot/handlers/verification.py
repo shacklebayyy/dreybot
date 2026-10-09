@@ -214,7 +214,8 @@ async def process_user_verification_data(message: Message, state: FSMContext):
         )
         kb = {
             'inline_keyboard': [
-                [{'text': '📤 Send Result to Customer', 'callback_data': f'adm_verif_deliver:{req.id}'}],
+                [{'text': f'💸 Deduct ${service.price:.2f} & Complete', 'callback_data': f'adm_verif_deduct:{req.id}'}],
+                [{'text': '📤 Send Result (No Deduct)', 'callback_data': f'adm_verif_deliver:{req.id}'}],
                 [{'text': '❌ Mark Failed', 'callback_data': f'adm_verif_fail:{req.id}'}]
             ]
         }

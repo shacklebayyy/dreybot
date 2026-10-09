@@ -1,0 +1,65 @@
+{% extends 'dashboard/base.html' %}
+
+{% block header_title %}Verification Request - {{ verif.verification_number }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex items-center justify-between">
+        <div>
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Verification Number</div>
+            <div class="text-2xl font-mono font-extrabold text-cyan-400">{{ verif.verification_number }}</div>
+            <div class="text-xs text-slate-400 mt-1">Customer: <strong class="text-white">{{ verif.customer.full_name }}</strong> (Telegram ID: {{ verif.customer.telegram_user_id }})</div>
+            <div class="text-xs text-slate-400 mt-1">Available Wallet Balance: <strong class="text-emerald-400">${{ verif.customer.total_available_balance }} USD</strong></div>
+            <div class="text-xs text-slate-400 mt-1">Submitted: {{ verif.created_at|date:"Y-m-d H:i UTC" }}</div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="deduct_balance">
+                <button type="submit" onclick="return confirm('Deduct ${{ verif.price }} from customer balance and mark completed?');" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition">
+                    💸 Deduct ${{ verif.price }} Balance
+                </button>
+            </form>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_completed">
+                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition">
+                    Mark COMPLETED
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Service Details & Submitted Requirements -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+                <span class="text-xs font-semibold text-slate-400 uppercase">Service Name</span>
+                <div class="text-lg font-bold text-white">{{ verif.service.name }}</div>
+            </div>
+            <div class="text-right">
+                <span class="text-xs font-semibold text-slate-400 uppercase">Service Fee</span>
+                <div class="text-lg font-extrabold text-emerald-400">${{ verif.price }} {{ verif.currency }}</div>
+            </div>
+        </div>
+
+        <h3 class="text-xs font-bold text-amber-300 uppercase tracking-wider">📄 SUBMITTED VERIFICATION DATA</h3>
+        <div class="text-xs font-mono text-slate-100 p-4 bg-slate-950 rounded-xl border border-slate-800 whitespace-pre-wrap">
+            {{ verif.result.submitted_data|default:verif.result }}
+        </div>
+    </div>
+
+    <!-- Mark Failed Form -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <h3 class="text-sm font-bold text-red-400">Mark Request Unverified / Failed</h3>
+        <form method="POST" class="space-y-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="mark_failed">
+            <input type="text" name="reason" placeholder="Failure reason (e.g. Invalid SSN or record not found)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white text-xs">
+            <button type="submit" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-xs transition">
+                ❌ Reject & Mark Failed
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

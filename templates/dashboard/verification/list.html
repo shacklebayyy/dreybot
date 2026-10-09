@@ -13,26 +13,34 @@
                 <th class="p-4">Status</th>
                 <th class="p-4">Masked Result</th>
                 <th class="p-4">Submitted</th>
+                <th class="p-4">Action</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-slate-800">
             {% for r in requests %}
             <tr>
-                <td class="p-4 font-mono font-bold text-cyan-400">{{ r.verification_number }}</td>
+                <td class="p-4 font-mono font-bold text-cyan-400">
+                    <a href="{% url 'dashboard:verification_detail' req_id=r.id %}" class="underline hover:text-cyan-300">{{ r.verification_number }}</a>
+                </td>
                 <td class="p-4 text-white">{{ r.customer.full_name }}</td>
-                <td class="p-4 text-slate-300">{{ r.service.name }}</td>
+                <td class="p-4 text-slate-300">{{ r.service.name }} (${{ r.price }})</td>
                 <td class="p-4">
                     <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
                         {{ r.status }}
                     </span>
                 </td>
                 <td class="p-4 text-xs font-mono text-slate-400">
-                    {{ r.result.identifier|default:r.result.ein|default:"Result Masked" }} ({{ r.result.status|default:"MATCH" }})
+                    {{ r.result.submitted_data|default:"View Data"|truncatechars:30 }}
                 </td>
                 <td class="p-4 text-slate-400 text-xs">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+                <td class="p-4">
+                    <a href="{% url 'dashboard:verification_detail' req_id=r.id %}" class="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition">
+                        View & Deduct Balance
+                    </a>
+                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="p-6 text-center text-slate-500">No verification requests submitted.</td></tr>
+            <tr><td colspan="7" class="p-6 text-center text-slate-500">No verification requests submitted.</td></tr>
             {% endfor %}
         </tbody>
     </table>

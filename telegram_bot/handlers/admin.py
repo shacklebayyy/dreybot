@@ -210,6 +210,7 @@ async def admin_orders_list(event, state: FSMContext = None):
         
         btns = []
         if o['payment_status'] == 'PENDING':
+            btns.append(InlineKeyboardButton(text=f"💸 Deduct ${o['total']:.2f} Balance", callback_data=f"adm_order_deduct:{o['id']}"))
             btns.append(InlineKeyboardButton(text="✅ Mark Paid", callback_data=f"adm_order_paid:{o['id']}"))
         btns.append(InlineKeyboardButton(text="📤 Deliver File", callback_data=f"adm_order_deliver:{o['id']}"))
         if o['order_status'] != 'CANCELLED':
@@ -221,6 +222,47 @@ async def admin_orders_list(event, state: FSMContext = None):
             await event.message.answer(card, parse_mode="Markdown", reply_markup=kb)
         else:
             await event.answer(card, parse_mode="Markdown", reply_markup=kb)
+
+# DEDUCT BALANCE FOR ORDER
+@router.callback_query(F.data.startswith("adm_order_deduct:"))
+async def cb_adm_order_deduct(call: CallbackQuery):
+    if not await is_admin(call.from_user.id):
+        await call.answer("Access denied", show_alert=True)
+        return
+
+    order_id = int(call.data.split(":")[1])
+
+    def do_deduct():
+        try:
+            o = Order.objects.get(id=order_id)
+            cust = o.customer
+            cust.deduct_balance(o.total)
+            o.payment_status = PaymentStatus.PAID
+            o.order_status = OrderStatus.COMPLETED
+            o.save()
+            return o, cust.total_available_balance
+        except Order.DoesNotExist:
+            return None, None
+
+    order, new_balance = await sync_to_async(do_deduct)()
+    if not order:
+        await call.answer("Order not found.", show_alert=True)
+        return
+
+    send_telegram_direct_message(
+        order.customer.telegram_user_id,
+        f"💸 *BALANCE DEDUCTED FOR ORDER #{order.order_number}*\n\n"
+        f"💰 Deducted Amount: *${order.total:.2f} USD*\n"
+        f"👛 Remaining Available Balance: *${new_balance:.2f} USD*\n\n"
+        f"Status: *PAID & COMPLETED*"
+    )
+
+    await call.message.edit_text(
+        f"💸 *DEDUCTED ${order.total:.2f} USD FROM CUSTOMER BALANCE FOR ORDER #{order.order_number}!*\n"
+        f"Remaining Customer Balance: *${new_balance:.2f} USD*",
+        parse_mode="Markdown"
+    )
+    await call.answer("Balance deducted & order marked paid!")
 
 # MARK ORDER PAID
 @router.callback_query(F.data.startswith("adm_order_paid:"))
@@ -780,7 +822,8 @@ async def admin_verifications_list(event, state: FSMContext = None):
             f"⏳ Status: *{v['status']}*"
         )
         kb = InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text="📤 Send Result to Customer", callback_data=f"adm_verif_deliver:{v['id']}"),
+            InlineKeyboardButton(text=f"💸 Deduct ${v['price']:.2f}", callback_data=f"adm_verif_deduct:{v['id']}"),
+            InlineKeyboardButton(text="📤 Send Result", callback_data=f"adm_verif_deliver:{v['id']}"),
             InlineKeyboardButton(text="❌ Mark Failed", callback_data=f"adm_verif_fail:{v['id']}")
         ]])
         
@@ -788,6 +831,51 @@ async def admin_verifications_list(event, state: FSMContext = None):
             await event.message.answer(card, parse_mode="Markdown", reply_markup=kb)
         else:
             await event.answer(card, parse_mode="Markdown", reply_markup=kb)
+
+# DEDUCT BALANCE FOR VERIFICATION REQUEST
+@router.callback_query(F.data.startswith("adm_verif_deduct:"))
+async def cb_adm_verif_deduct(call: CallbackQuery):
+    if not await is_admin(call.from_user.id):
+        await call.answer("Access denied", show_alert=True)
+        return
+
+    verif_id = int(call.data.split(":")[1])
+
+    from verification.models import VerificationRequestStatus
+    from django.utils import timezone
+
+    def do_deduct():
+        try:
+            r = VerificationRequest.objects.get(id=verif_id)
+            cust = r.customer
+            cust.deduct_balance(r.price)
+            r.status = VerificationRequestStatus.COMPLETED
+            r.completed_at = timezone.now()
+            r.save()
+            return r, cust.total_available_balance
+        except VerificationRequest.DoesNotExist:
+            return None, None
+
+    req, new_balance = await sync_to_async(do_deduct)()
+    if not req:
+        await call.answer("Verification request not found.", show_alert=True)
+        return
+
+    send_telegram_direct_message(
+        req.customer.telegram_user_id,
+        f"💸 *BALANCE DEDUCTED FOR VERIFICATION #{req.verification_number}*\n\n"
+        f"🔎 Service: *{req.service.name}*\n"
+        f"💰 Deducted Amount: *${req.price:.2f} USD*\n"
+        f"👛 Remaining Available Balance: *${new_balance:.2f} USD*\n\n"
+        f"Status: *COMPLETED*"
+    )
+
+    await call.message.edit_text(
+        f"💸 *DEDUCTED ${req.price:.2f} USD FROM CUSTOMER BALANCE FOR VERIFICATION #{req.verification_number}!*\n"
+        f"Remaining Customer Balance: *${new_balance:.2f} USD*",
+        parse_mode="Markdown"
+    )
+    await call.answer("Balance deducted & verification completed!")
 
 
 # BROADCAST PROMPT & EXECUTION
