@@ -213,30 +213,30 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS("Seeded Example Products."))
 
-        # Verification Services (Enterprise Compliance & KYC Terminology with Updated Pricing)
+        # Verification Services (Shortened Exact Titles)
         v_services = [
-            ("BACKGROUND CHECK / LIVENESS CHECK", "background_check", "Authorized $1 Background Check & Liveness Verification Audit.", 1.00),
-            ("PRIMARY ID & NAME VERIFICATION", "ssn_verification", "Primary ID & Name Verification via Authorized KYC API.", 4.00),
-            ("PRIMARY ID & DOB VERIFICATION", "ssn_dob_verification", "Primary ID and Date of Birth Validation Check.", 6.00),
-            ("REVERSE ID & SUBJECT CROSS-REFERENCE", "reverse_ssn_verification", "Subject Identification & Name Cross-Reference Audit.", 6.00),
-            ("STATE LICENSE VALIDATION", "dl_verification", "State Driver License Verification Check.", 10.00),
-            ("DOB & LICENSE MATCH VALIDATION", "dob_dl_verification", "Date of Birth and Driver License Match Validation.", 14.00),
-            ("PRIMARY ID & LICENSE MATCH VALIDATION", "ssn_dl_verification", "Primary ID and Driver License Match Validation.", 15.00),
-            ("LICENSE ISSUE & EXPIRY DATE AUDIT", "license_iss_exp_verification", "Driver License Issue & Expiry Date Verification.", 24.00),
-            ("MOTOR VEHICLE DRIVING RECORD (FULL MVR)", "full_mvr_verification", "Full Motor Vehicle Driving Record Compliance Audit.", 40.00),
-            ("PROFILE & MOTHER MAIDEN NAME AUDIT", "mmn_verification", "Profile Verification & Mother Maiden Name Record Match.", 30.00),
-            ("CREDIT SCORE AUDIT", "credit_score_verification", "Authorized Credit Score Assessment Check.", 6.00),
-            ("CREDIT SCORE & REPORT AUDIT", "credit_score_report_verification", "Comprehensive Credit Score and Credit Report Audit.", 13.00),
-            ("BUSINESS EIN MATCH VERIFICATION", "ein_verification", "Official State Registry & Business EIN Validation.", 50.00),
-            ("BUSINESS BACKGROUND COMPLIANCE REPORT", "business_report_verification", "Business Background & Corporate Compliance Report.", 10.00),
-            ("RESIDENCY & ADDRESS TRACE AUDIT", "reverse_address_verification", "Residency Proof & Address History Validation.", 1.00),
-            ("PHONE RISK & CONTACT AUDIT", "reverse_phone_verification", "Phone Contact Risk & Ownership Verification.", 1.00),
-            ("EMAIL FOOTPRINT AUDIT", "reverse_email_verification", "Email Digital Footprint & Risk Assessment Audit.", 1.00),
-            ("VEHICLE REGISTRATION & VIN AUDIT (FULL)", "vehicle_records_full", "Full Vehicle VIN & Title Registration History Audit.", 24.00),
-            ("VEHICLE REGISTRATION & VIN AUDIT (BASIC)", "vehicle_records_basic", "Basic Vehicle VIN & Title Registration Verification.", 16.00),
-            ("CC", "credit_consult", "Credit Consultation & Financial Profile Analysis.", 20.00),
-            ("🔍 MANUAL EXTENSIVE SEARCH", "manual_extensive_search", "Deep Comprehensive Manual Record & Identity Compliance Audit.", 20.00),
-            ("➕ CUSTOM COMPLIANCE VERIFICATION", "custom_verification", "Custom KYC / Compliance Verification Request.", 5.00),
+            ("BG", "background_check", "Authorized $1 Background Check & Liveness Verification.", 1.00),
+            ("SSN", "ssn_verification", "SSN Name Verification Check.", 4.00),
+            ("SSN+DOB", "ssn_dob_verification", "SSN and Date of Birth Verification Check.", 6.00),
+            ("REVERSE SSN", "reverse_ssn_verification", "Reverse SSN Subject Record Check.", 6.00),
+            ("DL", "dl_verification", "Driver License Number Verification.", 10.00),
+            ("DOB+DL", "dob_dl_verification", "Date of Birth and Driver License Match Check.", 14.00),
+            ("SSN+DL", "ssn_dl_verification", "SSN and Driver License Match Check.", 15.00),
+            ("ISS & EXP", "license_iss_exp_verification", "Driver License Issue and Expiry Date Verification.", 24.00),
+            ("FULL MVR", "full_mvr_verification", "Full Motor Vehicle Driving Record Report.", 40.00),
+            ("MMN", "mmn_verification", "Mother Maiden Name Verification Record.", 30.00),
+            ("CS", "credit_score_verification", "Credit Score Audit Check.", 6.00),
+            ("CS + CR", "credit_score_report_verification", "Credit Score and Credit Report Audit.", 13.00),
+            ("EIN", "ein_verification", "Business EIN Verification Check.", 50.00),
+            ("BUSINESS REPORT", "business_report_verification", "Business Background Report.", 10.00),
+            ("REVERSE ADDRESS", "reverse_address_verification", "Reverse Address Record Check.", 1.00),
+            ("REVERSE PHONE", "reverse_phone_verification", "Reverse Phone Record Check.", 1.00),
+            ("REVERSE EMAIL", "reverse_email_verification", "Reverse Email Record Check.", 1.00),
+            ("VEHICLE RECORDS (FULL)", "vehicle_records_full", "Full Vehicle VIN & Title Registration History Record.", 24.00),
+            ("VEHICLE RECORDS (BASIC)", "vehicle_records_basic", "Basic Vehicle VIN & Title Registration Record.", 16.00),
+            ("CC", "credit_consult", "Credit Consultation & Profile Check.", 20.00),
+            ("🔍 MANUAL EXTENSIVE SEARCH", "manual_extensive_search", "Deep Comprehensive Manual Record & Background Search.", 20.00),
+            ("➕ CUSTOM / NOT LISTED", "custom_verification", "Custom Verification Service Request.", 5.00),
         ]
 
         for name, code, desc, price in v_services:
