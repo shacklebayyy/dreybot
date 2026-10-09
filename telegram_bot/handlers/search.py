@@ -15,6 +15,8 @@ async def ask_search(message: Message):
         parse_mode="Markdown"
     )
 
+from django.db.models import Q
+
 @router.message(F.text.startswith("/search"))
 async def process_search(message: Message):
     query = message.text.replace("/search", "").strip()
@@ -22,7 +24,18 @@ async def process_search(message: Message):
         await message.answer("Please specify a search term. Example: `/search California`", parse_mode="Markdown")
         return
 
-    products = await sync_to_async(lambda: list(Product.objects.filter(name__icontains=query, is_active=True)[:10]))()
+    def perform_search():
+        q = (
+            Q(name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(short_description__icontains=query) |
+            Q(category__name__icontains=query) |
+            Q(country__name__icontains=query) |
+            Q(state__name__icontains=query)
+        )
+        return list(Product.objects.filter(q, is_active=True)[:15])
+
+    products = await sync_to_async(perform_search)()
 
     if not products:
         await message.answer(f"🔍 No educational templates found matching *'{query}'*.", parse_mode="Markdown")

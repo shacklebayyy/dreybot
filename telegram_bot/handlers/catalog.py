@@ -1,3 +1,4 @@
+from django.db.models import Q
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from asgiref.sync import sync_to_async
@@ -44,8 +45,11 @@ async def show_dl_templates(message: Message):
 @router.message(F.text == "🏢 BUSINESS DOCUMENTS")
 async def show_business_docs(message: Message):
     def get_prods():
-        cat = Category.objects.filter(slug__in=["business-documents"]).first()
-        return list(Product.objects.filter(category=cat, is_active=True)) if cat else []
+        cats = Category.objects.filter(Q(slug__icontains="business") | Q(name__icontains="business"))
+        prods = Product.objects.filter(Q(category__in=cats) | Q(name__icontains="business"), is_active=True)
+        if not prods.exists():
+            prods = Product.objects.filter(is_active=True)[:10]
+        return list(prods)
     products = await sync_to_async(get_prods)()
     await message.answer(
         f"{CATALOG_HEADER_NOTE}🏢 *BUSINESS DOCUMENTS TEMPLATES*\nSelect document:",
@@ -56,8 +60,11 @@ async def show_business_docs(message: Message):
 @router.message(F.text == "🎓 CERTIFICATES")
 async def show_certificates(message: Message):
     def get_prods():
-        cat = Category.objects.filter(slug__in=["certificates"]).first()
-        return list(Product.objects.filter(category=cat, is_active=True)) if cat else []
+        cats = Category.objects.filter(Q(slug__icontains="cert") | Q(name__icontains="cert"))
+        prods = Product.objects.filter(Q(category__in=cats) | Q(name__icontains="cert") | Q(name__icontains="diploma"), is_active=True)
+        if not prods.exists():
+            prods = Product.objects.filter(is_active=True)[:10]
+        return list(prods)
     products = await sync_to_async(get_prods)()
     await message.answer(
         f"{CATALOG_HEADER_NOTE}🎓 *CERTIFICATE TEMPLATES*\nSelect certificate:",
@@ -68,8 +75,11 @@ async def show_certificates(message: Message):
 @router.message(F.text == "📚 OTHER TEMPLATES")
 async def show_other_templates(message: Message):
     def get_prods():
-        cat = Category.objects.filter(slug__in=["other-templates"]).first()
-        return list(Product.objects.filter(category=cat, is_active=True)) if cat else []
+        cats = Category.objects.filter(Q(slug__icontains="other") | Q(name__icontains="other"))
+        prods = Product.objects.filter(Q(category__in=cats) | Q(name__icontains="other") | Q(name__icontains="utility") | Q(name__icontains="bill"), is_active=True)
+        if not prods.exists():
+            prods = Product.objects.filter(is_active=True)[:10]
+        return list(prods)
     products = await sync_to_async(get_prods)()
     await message.answer(
         f"{CATALOG_HEADER_NOTE}📚 *OTHER EDUCATIONAL TEMPLATES*\nSelect template:",
@@ -97,16 +107,35 @@ async def cb_country_selected(call: CallbackQuery):
         return
 
     def fetch_cat_products():
-        slug_map = {
-            "id-templates": ["id-templates", "id-mockups"],
-            "passport-templates": ["passport-templates", "passport-mockups"],
-            "driver-license-templates": ["driver-license-templates", "driver-license-mockups"]
+        keywords_map = {
+            "id-templates": ["id", "card", "mockup", "identity"],
+            "passport-templates": ["passport", "pass"],
+            "driver-license-templates": ["driver", "license", "dl", "driving"]
         }
-        allowed_slugs = slug_map.get(cat_slug, [cat_slug])
-        cat = Category.objects.filter(slug__in=allowed_slugs).first()
-        prods = Product.objects.filter(category=cat, country=country, is_active=True)
+        keywords = keywords_map.get(cat_slug, [cat_slug])
+        
+        cat_q = Q()
+        for kw in keywords:
+            cat_q |= Q(slug__icontains=kw) | Q(name__icontains=kw)
+        
+        cats = Category.objects.filter(cat_q)
+        
+        category_or_name_q = Q(category__in=cats)
+        for kw in keywords:
+            category_or_name_q |= Q(name__icontains=kw)
+            
+        prod_q = Q(is_active=True)
+        if country:
+            prod_q &= (Q(country=country) | Q(country__isnull=True))
+            
+        prods = Product.objects.filter(prod_q & category_or_name_q)
+        
+        if not prods.exists() and country:
+            prods = Product.objects.filter(is_active=True, country=country)
+            
         if not prods.exists():
-            prods = Product.objects.filter(category=cat, is_active=True)
+            prods = Product.objects.filter(is_active=True)[:10]
+
         return list(prods)
 
     products = await sync_to_async(fetch_cat_products)()
@@ -124,10 +153,16 @@ async def cb_state_selected(call: CallbackQuery):
 
     def fetch_state_prods():
         state = Region.objects.filter(code=code).first()
-        cat = Category.objects.filter(slug__in=["driver-license-templates", "driver-license-mockups"]).first()
-        prods = Product.objects.filter(category=cat, state=state, is_active=True)
+        prods = Product.objects.filter(state=state, is_active=True)
+        if not prods.exists() and state:
+            keywords = ["driver", "license", "dl", "id"]
+            cat_q = Q()
+            for kw in keywords:
+                cat_q |= Q(slug__icontains=kw) | Q(name__icontains=kw)
+            cats = Category.objects.filter(cat_q)
+            prods = Product.objects.filter(is_active=True, category__in=cats)
         if not prods.exists():
-            prods = Product.objects.filter(category=cat, is_active=True)[:5]
+            prods = Product.objects.filter(is_active=True)[:10]
         return state, list(prods)
 
     state, products = await sync_to_async(fetch_state_prods)()

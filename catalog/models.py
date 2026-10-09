@@ -114,3 +114,25 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.product.name}"
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Product)
+def on_product_saved(sender, instance, created, **kwargs):
+    if created and instance.is_active:
+        try:
+            from notifications.services import notify_admins
+            msg = (
+                f"🛍️ *[NEW WEBSITE PRODUCT PUBLISHED]*\n\n"
+                f"📌 *Product:* {instance.name}\n"
+                f"💰 *Price:* ${instance.price} {instance.currency}\n"
+                f"📂 *Category:* {instance.category.name if instance.category else 'General'}\n"
+                f"🌍 *Region:* {instance.country.name if instance.country else 'Global'}\n\n"
+                f"⚡ *Status:* Instantly Available on Telegram Bot UI & Website!"
+            )
+            notify_admins(msg)
+        except Exception as e:
+            print(f"Product post_save notification error: {e}")
+
