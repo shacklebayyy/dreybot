@@ -926,3 +926,142 @@ async def process_adm_svc_price(message: Message, state: FSMContext):
         parse_mode="Markdown"
     )
 
+# PROMPT ADMIN TO SEND VERIFICATION RESULT
+@router.callback_query(F.data.startswith("adm_verif_deliver:"))
+async def cb_adm_verif_deliver_prompt(call: CallbackQuery, state: FSMContext):
+    if not await is_admin(call.from_user.id):
+        await call.answer("Access denied", show_alert=True)
+        return
+
+    verif_id = int(call.data.split(":")[1])
+
+    def get_req():
+        return VerificationRequest.objects.filter(id=verif_id).select_related('customer', 'service').first()
+
+    req = await sync_to_async(get_req)()
+    if not req:
+        await call.answer("Verification request not found.", show_alert=True)
+        return
+
+    await state.set_state(AdminState.waiting_for_verif_result)
+    await state.update_data(verif_id=req.id)
+
+    cust = req.customer.first_name or req.customer.username or f"ID:{req.customer.telegram_user_id}"
+
+    await call.message.answer(
+        f"📤 *DELIVER VERIFICATION RESULT FOR REQUEST #{req.verification_number}*\n\n"
+        f"👤 Customer: `{cust}` (Telegram ID: `{req.customer.telegram_user_id}`)\n"
+        f"🔎 Service: *{req.service.name}*\n\n"
+        f"✍️ *Please attach a document file (PDF/PNG) or type the verification result directly below:*\n"
+        f"It will be sent immediately to the customer's Telegram chat and mark the verification request COMPLETED.",
+        parse_mode="Markdown"
+    )
+    await call.answer()
+
+# PROCESS ADMIN VERIFICATION RESULT DISPATCH
+@router.message(AdminState.waiting_for_verif_result)
+async def process_adm_verif_result(message: Message, state: FSMContext):
+    data = await state.get_data()
+    verif_id = data.get("verif_id")
+    if not verif_id:
+        await state.clear()
+        await message.answer("Error: Verification context lost.")
+        return
+
+    def get_req():
+        return VerificationRequest.objects.filter(id=verif_id).select_related('customer', 'service').first()
+
+    req = await sync_to_async(get_req)()
+    if not req:
+        await state.clear()
+        await message.answer("Verification request not found.")
+        return
+
+    customer_id = req.customer.telegram_user_id
+    success = False
+
+    if message.document:
+        bot = message.bot
+        file_id = message.document.file_id
+        caption = f"📊 *VERIFICATION RESULT READY (#{req.verification_number})*\n\n🔎 Service: *{req.service.name}*\nThank you for using DreyDocs Verification Services!"
+        try:
+            await bot.send_document(chat_id=customer_id, document=file_id, caption=caption, parse_mode="Markdown")
+            success = True
+        except Exception as e:
+            print(f"Failed sending verif doc to user: {e}")
+            success = False
+    elif message.photo:
+        bot = message.bot
+        photo_id = message.photo[-1].file_id
+        caption = f"📊 *VERIFICATION RESULT READY (#{req.verification_number})*\n\n🔎 Service: *{req.service.name}*\nThank you for using DreyDocs Verification Services!"
+        try:
+            await bot.send_photo(chat_id=customer_id, photo=photo_id, caption=caption, parse_mode="Markdown")
+            success = True
+        except Exception as e:
+            print(f"Failed sending verif photo to user: {e}")
+            success = False
+    else:
+        res_text = message.text.strip()
+        msg_to_user = (
+            f"📊 *VERIFICATION RESULT FOR REQUEST #{req.verification_number}*\n\n"
+            f"🔎 Service: *{req.service.name}*\n\n"
+            f"📋 *RESULTS:*\n"
+            f"{res_text}\n\n"
+            f"Thank you for choosing DreyDocs!"
+        )
+        success = send_telegram_direct_message(customer_id, msg_to_user)
+
+    if success:
+        from verification.models import VerificationRequestStatus
+        from django.utils import timezone
+
+        def finalize_verif():
+            req.status = VerificationRequestStatus.COMPLETED
+            req.completed_at = timezone.now()
+            req.save()
+
+        await sync_to_async(finalize_verif)()
+        await state.clear()
+        await message.answer(
+            f"✅ *VERIFICATION RESULT DISPATCHED!*\n\n"
+            f"Request `#{req.verification_number}` has been delivered directly to customer Telegram chat `{customer_id}`.",
+            parse_mode="Markdown"
+        )
+    else:
+        await message.answer(f"❌ Failed to dispatch result to Telegram user ID {customer_id}. Please try again.")
+
+# MARK VERIFICATION FAILED
+@router.callback_query(F.data.startswith("adm_verif_fail:"))
+async def cb_adm_verif_fail(call: CallbackQuery):
+    if not await is_admin(call.from_user.id):
+        await call.answer("Access denied", show_alert=True)
+        return
+
+    verif_id = int(call.data.split(":")[1])
+
+    from verification.models import VerificationRequestStatus
+
+    def fail_verif():
+        try:
+            r = VerificationRequest.objects.get(id=verif_id)
+            r.status = VerificationRequestStatus.FAILED
+            r.failure_reason = "Verification check unverified or rejected by provider."
+            r.save()
+            return r
+        except VerificationRequest.DoesNotExist:
+            return None
+
+    req = await sync_to_async(fail_verif)()
+    if not req:
+        await call.answer("Request not found", show_alert=True)
+        return
+
+    send_telegram_direct_message(
+        req.customer.telegram_user_id,
+        f"❌ *VERIFICATION REQUEST #{req.verification_number} UNVERIFIED / FAILED.*\nIf you have questions, please submit a support ticket in chat."
+    )
+
+    await call.message.edit_text(f"❌ *VERIFICATION #{req.verification_number} MARKED FAILED.*", parse_mode="Markdown")
+    await call.answer("Marked failed.")
+
+
