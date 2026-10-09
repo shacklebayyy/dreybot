@@ -103,4 +103,10 @@ def get_topup_amount_keyboard(currency):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
+def get_cancel_request_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="❌ CANCEL REQUEST", callback_data="v_cancel")]
+    ])
+
+
 
