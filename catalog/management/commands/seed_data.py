@@ -213,19 +213,29 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS("Seeded Example Products."))
 
-        # Verification Services (Enterprise Compliance & KYC Terminology)
+        # Verification Services (Enterprise Compliance & KYC Terminology with Updated Pricing)
         v_services = [
             ("BACKGROUND CHECK / LIVENESS CHECK", "background_check", "Authorized $1 Background Check & Liveness Verification Audit.", 1.00),
+            ("PRIMARY ID & NAME VERIFICATION", "ssn_verification", "Primary ID & Name Verification via Authorized KYC API.", 4.00),
+            ("PRIMARY ID & DOB VERIFICATION", "ssn_dob_verification", "Primary ID and Date of Birth Validation Check.", 6.00),
+            ("REVERSE ID & SUBJECT CROSS-REFERENCE", "reverse_ssn_verification", "Subject Identification & Name Cross-Reference Audit.", 6.00),
+            ("STATE LICENSE VALIDATION", "dl_verification", "State Driver License Verification Check.", 10.00),
+            ("DOB & LICENSE MATCH VALIDATION", "dob_dl_verification", "Date of Birth and Driver License Match Validation.", 14.00),
+            ("PRIMARY ID & LICENSE MATCH VALIDATION", "ssn_dl_verification", "Primary ID and Driver License Match Validation.", 15.00),
+            ("LICENSE ISSUE & EXPIRY DATE AUDIT", "license_iss_exp_verification", "Driver License Issue & Expiry Date Verification.", 24.00),
+            ("MOTOR VEHICLE DRIVING RECORD (FULL MVR)", "full_mvr_verification", "Full Motor Vehicle Driving Record Compliance Audit.", 40.00),
+            ("PROFILE & MOTHER MAIDEN NAME AUDIT", "mmn_verification", "Profile Verification & Mother Maiden Name Record Match.", 30.00),
+            ("CREDIT SCORE AUDIT", "credit_score_verification", "Authorized Credit Score Assessment Check.", 6.00),
+            ("CREDIT SCORE & REPORT AUDIT", "credit_score_report_verification", "Comprehensive Credit Score and Credit Report Audit.", 13.00),
+            ("BUSINESS EIN MATCH VERIFICATION", "ein_verification", "Official State Registry & Business EIN Validation.", 50.00),
+            ("BUSINESS BACKGROUND COMPLIANCE REPORT", "business_report_verification", "Business Background & Corporate Compliance Report.", 10.00),
+            ("RESIDENCY & ADDRESS TRACE AUDIT", "reverse_address_verification", "Residency Proof & Address History Validation.", 1.00),
+            ("PHONE RISK & CONTACT AUDIT", "reverse_phone_verification", "Phone Contact Risk & Ownership Verification.", 1.00),
+            ("EMAIL FOOTPRINT AUDIT", "reverse_email_verification", "Email Digital Footprint & Risk Assessment Audit.", 1.00),
+            ("VEHICLE REGISTRATION & VIN AUDIT (FULL)", "vehicle_records_full", "Full Vehicle VIN & Title Registration History Audit.", 24.00),
+            ("VEHICLE REGISTRATION & VIN AUDIT (BASIC)", "vehicle_records_basic", "Basic Vehicle VIN & Title Registration Verification.", 16.00),
             ("CC", "credit_consult", "Credit Consultation & Financial Profile Analysis.", 20.00),
             ("🔍 MANUAL EXTENSIVE SEARCH", "manual_extensive_search", "Deep Comprehensive Manual Record & Identity Compliance Audit.", 20.00),
-            ("PRIMARY ID & NAME VERIFICATION", "ssn_verification", "Primary ID & Name Verification via Authorized KYC API.", 5.00),
-            ("DOCUMENT FACIAL MATCH / ID IMAGE VALIDATION", "dl_photo_lookup", "State License & Document Image Validation Match.", 15.00),
-            ("PROOF OF ADDRESS (POA) VALIDATION", "utility_bill_lookup", "Residency & Utility Document Validation Audit.", 5.00),
-            ("FINANCIAL ACCOUNT VERIFICATION", "bank_account_lookup", "Authorized Financial Account & Banking Status Audit.", 12.00),
-            ("BUSINESS REGISTRATION & EIN MATCH", "ein_verification", "Official State Registry & Business EIN Validation.", 5.00),
-            ("GEOLOCATION & RISK AUDIT", "ip_address_search", "IP Network Geolocation & Risk Assessment Audit.", 5.00),
-            ("DIGITAL FOOTPRINT ASSESSMENT", "social_media_search", "Open-Source Digital Profile & Footprint Assessment.", 5.00),
-            ("REAL ESTATE & LIEN VERIFICATION", "mortgage_record", "Public Property Title & Real Estate Lien Verification.", 10.00),
             ("➕ CUSTOM COMPLIANCE VERIFICATION", "custom_verification", "Custom KYC / Compliance Verification Request.", 5.00),
         ]
 
@@ -237,6 +247,6 @@ class Command(BaseCommand):
             svc.active = True
             svc.requires_consent = True
             svc.save()
-        self.stdout.write(self.style.SUCCESS("Seeded Enterprise Compliance & KYC Verification Services."))
+        self.stdout.write(self.style.SUCCESS("Seeded Enterprise Compliance & KYC Verification Services with updated pricing."))
 
         self.stdout.write(self.style.SUCCESS("All seed data created successfully!"))
