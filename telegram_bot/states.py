@@ -14,4 +14,5 @@ class AdminState(StatesGroup):
     waiting_for_ticket_reply = State()
     waiting_for_order_doc = State()
     waiting_for_broadcast = State()
+    waiting_for_service_price = State()
 

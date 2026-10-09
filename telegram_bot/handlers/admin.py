@@ -10,7 +10,7 @@ from accounts.models import UserProfile
 from orders.models import Order, PaymentStatus, OrderStatus
 from payments.models import TopUpRequest
 from support.models import SupportTicket, SupportMessage
-from verification.models import VerificationRequest
+from verification.models import VerificationRequest, VerificationService
 from telegram_bot.states import AdminState
 from notifications.services import send_telegram_direct_message, send_telegram_document_file, notify_admins
 
@@ -21,9 +21,14 @@ def get_admin_profile(telegram_id: int):
         profile = UserProfile.objects.get(telegram_user_id=telegram_id)
         if profile.is_admin_role:
             return profile
-        return None
     except UserProfile.DoesNotExist:
-        return None
+        pass
+
+    from accounts.services import get_or_create_telegram_user
+    profile = get_or_create_telegram_user(telegram_id=telegram_id)
+    if profile and profile.is_admin_role:
+        return profile
+    return None
 
 async def is_admin(telegram_id: int) -> bool:
     profile = await sync_to_async(get_admin_profile)(telegram_id)
@@ -55,6 +60,7 @@ async def admin_dashboard_cmd(message: Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"🛒 Manage Orders ({p_orders})", callback_data="adm_orders_menu")],
         [InlineKeyboardButton(text=f"💰 Top-Up Proofs ({p_topups})", callback_data="adm_topups_menu")],
+        [InlineKeyboardButton(text="🔎 Verification Services ($1 BG Check)", callback_data="adm_services_menu")],
         [InlineKeyboardButton(text=f"🎫 Support Tickets ({o_tickets})", callback_data="adm_tickets_menu")],
         [InlineKeyboardButton(text="📊 Revenue & Stats", callback_data="adm_stats_menu")],
         [InlineKeyboardButton(text="📢 Broadcast Message", callback_data="adm_broadcast_prompt")]
@@ -129,6 +135,7 @@ async def cb_adm_main_menu(call: CallbackQuery):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"🛒 Manage Orders ({p_orders})", callback_data="adm_orders_menu")],
         [InlineKeyboardButton(text=f"💰 Top-Up Proofs ({p_topups})", callback_data="adm_topups_menu")],
+        [InlineKeyboardButton(text="🔎 Verification Services ($1 BG Check)", callback_data="adm_services_menu")],
         [InlineKeyboardButton(text=f"🎫 Support Tickets ({o_tickets})", callback_data="adm_tickets_menu")],
         [InlineKeyboardButton(text="📊 Revenue & Stats", callback_data="adm_stats_menu")],
         [InlineKeyboardButton(text="📢 Broadcast Message", callback_data="adm_broadcast_prompt")]
@@ -752,3 +759,170 @@ async def admin_broadcast_cmd(message: Message, state: FSMContext):
 
     await state.clear()
     await message.answer(f"✅ Broadcast sent successfully to {count} users.")
+
+# VERIFICATION SERVICES MANAGEMENT CONTROL
+@router.message(F.text == "/services")
+@router.callback_query(F.data == "adm_services_menu")
+async def admin_services_list(event, state: FSMContext = None):
+    telegram_id = event.from_user.id
+    if not await is_admin(telegram_id):
+        if isinstance(event, CallbackQuery):
+            await event.answer("Access denied", show_alert=True)
+        else:
+            await event.answer("⛔ Access denied.")
+        return
+
+    def fetch_services():
+        svcs = list(VerificationService.objects.all().order_by('id'))
+        results = []
+        for s in svcs:
+            results.append({
+                'id': s.id,
+                'name': s.name,
+                'code': s.code,
+                'price': s.price,
+                'currency': s.currency,
+                'active': s.active,
+            })
+        return results
+
+    svcs_data = await sync_to_async(fetch_services)()
+
+    if not svcs_data:
+        msg = "🔎 *VERIFICATION SERVICES CONTROL*\n\nNo verification services found in database."
+        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Back to Admin Desk", callback_data="adm_main_menu")]])
+        if isinstance(event, CallbackQuery):
+            await event.message.edit_text(msg, parse_mode="Markdown", reply_markup=kb)
+            await event.answer()
+        else:
+            await event.answer(msg, parse_mode="Markdown", reply_markup=kb)
+        return
+
+    intro = "🔎 *VERIFICATION SERVICES CONTROL PANEL*\nManage prices and active status for all verification checks (including $1 Background Check):\n\n"
+    if isinstance(event, CallbackQuery):
+        await event.message.answer(intro, parse_mode="Markdown")
+        await event.answer()
+    else:
+        await event.answer(intro, parse_mode="Markdown")
+
+    for s in svcs_data:
+        status_str = "🟢 Active" if s['active'] else "🔴 Disabled"
+        card = (
+            f"📋 *{s['name']}*\n"
+            f"🔑 Code: `{s['code']}`\n"
+            f"💰 Price: *${s['price']:.2f} {s['currency']}*\n"
+            f"⚡ Status: {status_str}"
+        )
+        toggle_btn_text = "🔴 Disable" if s['active'] else "🟢 Enable"
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(text=toggle_btn_text, callback_data=f"adm_svc_toggle:{s['id']}"),
+            InlineKeyboardButton(text="✏️ Edit Price", callback_data=f"adm_svc_price:{s['id']}")
+        ]])
+
+        if isinstance(event, CallbackQuery):
+            await event.message.answer(card, parse_mode="Markdown", reply_markup=kb)
+        else:
+            await event.answer(card, parse_mode="Markdown", reply_markup=kb)
+
+# TOGGLE VERIFICATION SERVICE ACTIVE STATUS
+@router.callback_query(F.data.startswith("adm_svc_toggle:"))
+async def cb_adm_svc_toggle(call: CallbackQuery):
+    if not await is_admin(call.from_user.id):
+        await call.answer("Access denied", show_alert=True)
+        return
+
+    svc_id = int(call.data.split(":")[1])
+
+    def toggle_svc():
+        try:
+            s = VerificationService.objects.get(id=svc_id)
+            s.active = not s.active
+            s.save()
+            return s
+        except VerificationService.DoesNotExist:
+            return None
+
+    svc = await sync_to_async(toggle_svc)()
+    if not svc:
+        await call.answer("Service not found", show_alert=True)
+        return
+
+    status_str = "🟢 Active" if svc.active else "🔴 Disabled"
+    await call.message.edit_text(
+        f"📋 *{svc.name}*\n"
+        f"🔑 Code: `{svc.code}`\n"
+        f"💰 Price: *${svc.price:.2f} {svc.currency}*\n"
+        f"⚡ Status: {status_str}",
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(text="🔴 Disable" if svc.active else "🟢 Enable", callback_data=f"adm_svc_toggle:{svc.id}"),
+            InlineKeyboardButton(text="✏️ Edit Price", callback_data=f"adm_svc_price:{svc.id}")
+        ]])
+    )
+    await call.answer(f"Status updated to {'Active' if svc.active else 'Disabled'}")
+
+# PROMPT EDIT PRICE FOR VERIFICATION SERVICE
+@router.callback_query(F.data.startswith("adm_svc_price:"))
+async def cb_adm_svc_price_prompt(call: CallbackQuery, state: FSMContext):
+    if not await is_admin(call.from_user.id):
+        await call.answer("Access denied", show_alert=True)
+        return
+
+    svc_id = int(call.data.split(":")[1])
+
+    def get_svc():
+        return VerificationService.objects.filter(id=svc_id).first()
+
+    svc = await sync_to_async(get_svc)()
+    if not svc:
+        await call.answer("Service not found.", show_alert=True)
+        return
+
+    await state.set_state(AdminState.waiting_for_service_price)
+    await state.update_data(svc_id=svc.id)
+
+    await call.message.answer(
+        f"✏️ *EDIT PRICE FOR SERVICE: {svc.name}*\n\n"
+        f"Current Price: `${svc.price:.2f} {svc.currency}`\n\n"
+        f"✍️ *Please enter the new price numeric value below (e.g. 1.00):*",
+        parse_mode="Markdown"
+    )
+    await call.answer()
+
+# PROCESS SERVICE NEW PRICE
+@router.message(AdminState.waiting_for_service_price)
+async def process_adm_svc_price(message: Message, state: FSMContext):
+    text_val = message.text.strip().lstrip('$')
+    try:
+        new_price = Decimal(text_val)
+        if new_price < 0:
+            raise ValueError
+    except Exception:
+        await message.answer("❌ Invalid price format. Please enter a valid positive number like `1.00` or `5.00`:", parse_mode="Markdown")
+        return
+
+    data = await state.get_data()
+    svc_id = data.get("svc_id")
+
+    def update_price():
+        try:
+            s = VerificationService.objects.get(id=svc_id)
+            s.price = new_price
+            s.save()
+            return s
+        except VerificationService.DoesNotExist:
+            return None
+
+    svc = await sync_to_async(update_price)()
+    await state.clear()
+
+    if not svc:
+        await message.answer("Error: Service not found.")
+        return
+
+    await message.answer(
+        f"✅ *PRICE UPDATED FOR {svc.name}!*\n\n"
+        f"New Price: *${svc.price:.2f} {svc.currency}*",
+        parse_mode="Markdown"
+    )
+

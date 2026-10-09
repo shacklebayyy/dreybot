@@ -65,9 +65,8 @@ def process_payment_confirmation(transaction_reference: str) -> bool:
         if payment.order:
             order = payment.order
             order.payment_status = PaymentStatus.PAID
-            order.order_status = OrderStatus.COMPLETED
+            order.order_status = OrderStatus.PENDING
             order.paid_at = timezone.now()
-            order.completed_at = timezone.now()
             order.save()
 
             from downloads.services import generate_download_tokens_for_order
