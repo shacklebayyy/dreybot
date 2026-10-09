@@ -49,15 +49,20 @@ class UserProfile(models.Model):
     def deduct_balance(self, amount):
         from decimal import Decimal
         amt = Decimal(str(amount))
-        if self.bonus_balance > 0:
+        if amt <= Decimal('0.00'):
+            return
+
+        if self.bonus_balance > Decimal('0.00'):
             if self.bonus_balance >= amt:
                 self.bonus_balance -= amt
                 amt = Decimal('0.00')
             else:
                 amt -= self.bonus_balance
                 self.bonus_balance = Decimal('0.00')
-        if amt > 0:
+        if amt > Decimal('0.00'):
             self.balance -= amt
+            if self.balance < Decimal('0.00'):
+                self.balance = Decimal('0.00')
         self.save()
 
     def credit_balance(self, amount, bonus_amount=0):

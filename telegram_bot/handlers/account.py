@@ -26,13 +26,14 @@ async def show_account(message: Message):
     profile, orders_count, paid_orders = await sync_to_async(fetch_account)()
 
     text = (
-        f"👤 *USER INFORMATION*\n"
+        f"👤 *USER ACCOUNT OVERVIEW*\n"
         f"├ User ID: `{profile.telegram_user_id}`\n"
         f"├ Username: `@{profile.username or 'N/A'}`\n"
-        f"├ Current Balance: `${profile.balance}`\n"
+        f"├ 👛 *Total Available Balance:* `${profile.total_available_balance:.2f} USD`\n"
+        f"├ 💵 Main Wallet Balance: `${profile.balance:.2f} USD`\n"
+        f"├ 🎁 Active Bonus Balance: `${profile.bonus_balance:.2f} USD`\n"
         f"└ Register Date: `{profile.joined_at.strftime('%Y-%m-%d %H:%M:%S')}`\n\n"
         f"💰 *BONUS PROGRAM*\n"
-        f"├ Active Bonus: `${profile.bonus_balance}`\n"
         f"└ Earn $5 bonus for deposits ≥$50!\n\n"
         f"📊 *ORDER STATS*\n"
         f"└ Total Orders: {orders_count} ({paid_orders} Completed)"
