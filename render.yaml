@@ -25,7 +25,9 @@ services:
       - key: ADMIN_TELEGRAM_IDS
         value: "8942516822"
       - key: ADMIN_TELEGRAM_USERNAMES
-        value: "Dreydocbot"
+        value: "Dreydocbot,Dreynewbot"
+      - key: TELEGRAM_BOT_USERNAME
+        value: "Dreynewbot"
       - key: DJANGO_SETTINGS_MODULE
         value: "drey_docs.settings.production"
 
