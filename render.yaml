@@ -26,6 +26,8 @@ services:
         value: "8942516822"
       - key: ADMIN_TELEGRAM_USERNAMES
         value: "Dreydocbot"
+      - key: DJANGO_SETTINGS_MODULE
+        value: "drey_docs.settings.production"
 
 databases:
   - name: dreydocs-db

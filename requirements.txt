@@ -12,3 +12,4 @@ stripe>=8.0.0
 cryptography>=42.0.0
 pytest>=8.0.0
 pytest-django>=4.8.0
+dj-database-url>=2.1.0

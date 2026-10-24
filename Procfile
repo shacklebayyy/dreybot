@@ -1,2 +1,2 @@
-web: gunicorn drey_docs.wsgi:application
+web: bash run.sh
 worker: python telegram_bot/bot.py

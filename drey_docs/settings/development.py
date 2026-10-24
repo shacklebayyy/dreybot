@@ -1,3 +1,3 @@
 from .base import *
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')

@@ -16,6 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+RUN chmod +x /app/run.sh /app/build.sh
+RUN python manage.py collectstatic --no-input
+
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "drey_docs.wsgi:application"]
+CMD ["bash", "/app/run.sh"]
